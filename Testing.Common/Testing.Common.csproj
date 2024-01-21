@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>Rtl.News.RtlPoc.Testing.Common</AssemblyName>
+		<RootNamespace>Rtl.News.RtlPoc.Testing.Common</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!-- SYSLIB1045: Use 'GeneratedRegexAttribute' - not necessary for tests -->
+		<NoWarn>SYSLIB1045</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="NSubstitute" />
+		<PackageReference Include="Shouldly" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Domain\Domain.csproj" />
+	</ItemGroup>
+
+</Project>

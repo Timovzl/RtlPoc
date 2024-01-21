@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>Rtl.News.RtlPoc.Domain</AssemblyName>
+		<RootNamespace>Rtl.News.RtlPoc.Domain</RootNamespace>
+		<NuGetAudit>True</NuGetAudit>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!-- CA1507: Use nameof to express symbol names - JSON property names should be hardcoded separately from symbol names, which may be renamed -->
+		<!-- IDE0290: Use primary constructor - domain objects tend to have complex ctor logic, and we want to be consistent even when ctors are simple -->
+		<NoWarn>CA1507, IDE0290</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="$(AssemblyName).UnitTests" />
+		<InternalsVisibleTo Include="Rtl.News.RtlPoc.Application.IntegrationTests" />
+		<InternalsVisibleTo Include="Rtl.News.RtlPoc.Application.UnitTests" />
+		<InternalsVisibleTo Include="Rtl.News.RtlPoc.Testing.Common" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Architect.DomainModeling" />
+		<PackageReference Include="Architect.Identities" />
+		<PackageReference Include="Newtonsoft.Json" />
+		<PackageReference Include="prometheus-net.AspNetCore" />
+		<PackageReference Include="Scrutor" />
+	</ItemGroup>
+
+</Project>

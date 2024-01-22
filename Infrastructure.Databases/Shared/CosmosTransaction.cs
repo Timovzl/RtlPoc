@@ -14,6 +14,7 @@ internal sealed class CosmosTransaction(
 {
 	public const ushort MaxOperationCount = 100;
 
+	private readonly DataPartitionKey _partitionKey = partitionKey;
 	private readonly PartitionKey _cosmosPartitionKey = new PartitionKey(partitionKey);
 
 	public override IRepository Repository => this._repository;
@@ -52,7 +53,7 @@ internal sealed class CosmosTransaction(
 			throw new InvalidOperationException($"A CosmosDB transaction supports only up to {MaxOperationCount} operations. Design for smaller batches.");
 
 		// Protect single partition limitation
-		if (entity is not null && this._orderedEntities.OfType<IPocEntity>().FirstOrDefault() is IPocEntity firstEntity && (DataPartitionKey)entity.GetId() != (DataPartitionKey)firstEntity.GetId())
+		if (entity is not null && !this._partitionKey.MatchesId(entity.GetId()))
 			throw new InvalidOperationException($"A CosmosDB transaction supports only a single partition. To automatically generate IDs for the same partition, start the use case with: using var idGeneratorScope = IdGenerator.CreateIdGeneratorScopeForSinglePartition().");
 
 		this._orderedEntities.Add(entity);

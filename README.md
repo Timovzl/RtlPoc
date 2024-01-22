@@ -14,7 +14,7 @@ The following dependencies are required to run the bounded context:
 - **Concurrency conflicts:** Use cases are invoked wrapped in a `ResilientService<T>`, whose implementation automatically retries the entire use case on an optimistic concurrency conflict.
 - **Transient failures (RU exhaustion):** The CosmosClient automatically retries on RU exhaustion failures.
 - **Transient failures (reads):** The CosmosClient automatically retries on transient failures.
-- **Transient failures (writes):** The CosmosClient _cannot_ retry write failures, because a write may have succeeded and is not guaranteed to be idempotent.
+- **Transient failures (writes):** The CosmosClient _cannot_ retry on write failures, because a write may have succeeded and is not guaranteed to be idempotent.
 
 ## High Availability
 

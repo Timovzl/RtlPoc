@@ -1,3 +1,5 @@
+using Prometheus;
+
 namespace Rtl.News.RtlPoc.Application.Promises;
 
 /// <summary>
@@ -27,6 +29,10 @@ public sealed class PromiseFulfiller(
 	IServiceProvider serviceProvider)
 	: IPromiseFulfiller
 {
+	private static readonly Counter FulfillmentCounter = Metrics.CreateCounter(name: "PromiseFulfillerSuccesses", help: "Counts successfully fulfilled promises.");
+	private static readonly Counter DelayedFulfillmentCounter = Metrics.CreateCounter(name: "PromiseFulfillerDelayedSuccesses", help: "Counts promises that were fulfilled delayed.");
+	private static readonly Counter ErrorCounter = Metrics.CreateCounter(name: "PromiseFulfillerErrors", help: "Counts errors attempting to fulfill promises.");
+
 	public async Task TryFulfillAsync(Promise promise, CancellationToken cancellationToken)
 	{
 		promise.ConsumeAttempt();
@@ -44,6 +50,10 @@ public sealed class PromiseFulfiller(
 			await resilienceStrategy.ExecuteAsync(
 				cancellationToken => DeleteAsync(repository, CancellationToken.None), // Without cancellation, to best keep in-sync with having been executed
 				cancellationToken);
+
+			FulfillmentCounter.Inc();
+			if (promise.AttemptCount > 1)
+				DelayedFulfillmentCounter.Inc();
 		}
 		catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
 		{
@@ -52,6 +62,8 @@ public sealed class PromiseFulfiller(
 		}
 		catch (Exception e)
 		{
+			ErrorCounter.Inc();
+
 			// Warn about the issue
 			// The next attempt will come in time
 			logger.Log(

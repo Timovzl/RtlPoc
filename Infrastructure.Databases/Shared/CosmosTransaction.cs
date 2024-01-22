@@ -54,7 +54,7 @@ internal sealed class CosmosTransaction(
 
 		// Protect single partition limitation
 		if (entity is not null && !this._partitionKey.MatchesId(entity.GetId()))
-			throw new InvalidOperationException($"A CosmosDB transaction supports only a single partition. To automatically generate IDs for the same partition, start the use case with: using var idGeneratorScope = IdGenerator.CreateIdGeneratorScopeForSinglePartition().");
+			throw new InvalidOperationException("A CosmosDB transaction supports only a single partition. To automatically generate IDs for the same partition, start the use case with: using var idGeneratorScope = IdGenerator.CreateIdGeneratorScopeForSinglePartition().");
 
 		this._orderedEntities.Add(entity);
 

@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
@@ -188,16 +188,16 @@ public sealed class IdempotentPromiseFulfillerAttribute(
 /// </summary>
 file static class AttributeCache<T>
 {
-	private static object? CachedValues;
+	private static object? _cachedValues;
 
 	public static IdempotentPromiseFulfillerAttribute? GetAttributeForMethod(MethodInfo method)
 	{
 		// Hot path: a single annotated method per containing type
-		if (CachedValues is Tuple<MethodInfo, IdempotentPromiseFulfillerAttribute?> singleResult && singleResult.Item1 == method)
+		if (_cachedValues is Tuple<MethodInfo, IdempotentPromiseFulfillerAttribute?> singleResult && singleResult.Item1 == method)
 			return singleResult.Item2;
 
 		// Uncommon path: a few annotated methods per containing type
-		if (CachedValues is KeyValuePair<MethodInfo, IdempotentPromiseFulfillerAttribute?>[] multiResult)
+		if (_cachedValues is KeyValuePair<MethodInfo, IdempotentPromiseFulfillerAttribute?>[] multiResult)
 		{
 			foreach (var pair in multiResult)
 				if (pair.Key == method)
@@ -224,7 +224,7 @@ file static class AttributeCache<T>
 			// Avoid overeager attempts in the face of concurrency conflicts
 			spinWait.SpinOnce();
 
-			cachedValues = CachedValues;
+			cachedValues = _cachedValues;
 
 			if (cachedValues is null)
 			{
@@ -250,6 +250,6 @@ file static class AttributeCache<T>
 			{
 				throw new InvalidOperationException("This case should have been unreachable.");
 			}
-		} while (Interlocked.CompareExchange(ref CachedValues, value: newCachedValues, comparand: cachedValues) != cachedValues);
+		} while (Interlocked.CompareExchange(ref _cachedValues, value: newCachedValues, comparand: cachedValues) != cachedValues);
 	}
 }

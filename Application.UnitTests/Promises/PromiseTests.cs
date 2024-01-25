@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Rtl.News.RtlPoc.Application.Promises;
 using Shouldly;
 
@@ -18,7 +18,7 @@ public sealed class PromiseTests
 
 	private static Promise GetExamplePromiseLoadedFromStorage()
 	{
-		const string jsonBlob = """
+		const string JsonBlob = """
 			{
 				"id": "0000000000000000000001",
 				"part": "001",
@@ -31,7 +31,7 @@ public sealed class PromiseTests
 			}
 			""";
 
-		var result = JsonConvert.DeserializeObject<Promise>(jsonBlob)!;
+		var result = JsonConvert.DeserializeObject<Promise>(JsonBlob)!;
 		return result;
 	}
 

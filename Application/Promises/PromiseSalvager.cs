@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using System.Runtime.CompilerServices;
 
 namespace Rtl.News.RtlPoc.Application.Promises;
@@ -77,17 +77,17 @@ public abstract class PromiseSalvager(
 	{
 		// Using separate small batches reduces race conditions with competing processes
 		// Finally, to avoid endlessly working on single items trickling in, continue only as long as a full batch was received
-		const ushort batchSize = 10;
+		const ushort BatchSize = 10;
 
 		var expectsMoreData = true;
 		while (expectsMoreData && !cancellationToken.IsCancellationRequested)
 		{
-			var batch = await resilienceStrategy.ExecuteAsync(cancellationToken => this.GetNeglectedPromiseBatchAsync(batchSize, cancellationToken), cancellationToken);
+			var batch = await resilienceStrategy.ExecuteAsync(cancellationToken => this.GetNeglectedPromiseBatchAsync(BatchSize, cancellationToken), cancellationToken);
 
 			foreach (var promise in batch)
 				yield return promise;
 
-			expectsMoreData = batch.Count >= batchSize;
+			expectsMoreData = batch.Count >= BatchSize;
 		}
 	}
 

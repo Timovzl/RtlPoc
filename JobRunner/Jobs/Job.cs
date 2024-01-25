@@ -7,8 +7,8 @@ namespace Rtl.News.RtlPoc.JobRunner.Jobs;
 /// </summary>
 public abstract class Job : IJob
 {
-	public abstract string CronSchedule { get; }
+    public abstract string CronSchedule { get; }
 
-	[DisableConcurrentExecution(timeoutInSeconds: 5 * 60)]
-	public abstract Task Execute(CancellationToken cancellationToken);
+    [DisableConcurrentExecution(timeoutInSeconds: 5 * 60)]
+    public abstract Task Execute(CancellationToken cancellationToken);
 }

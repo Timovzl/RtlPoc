@@ -15,79 +15,79 @@ namespace Rtl.News.RtlPoc.Domain.Validation;
 [Serializable]
 public class ValidationException : Exception
 {
-	// Message is inherited
+    // Message is inherited
 
-	/// <summary>
-	/// The string representation of the error code.
-	/// </summary>
-	public string ErrorCode { get; }
+    /// <summary>
+    /// The string representation of the error code.
+    /// </summary>
+    public string ErrorCode { get; }
 
-	/// <summary>
-	/// The body of the message, not prefixed by the error code.
-	/// </summary>
-	public string MessageBody { get; }
+    /// <summary>
+    /// The body of the message, not prefixed by the error code.
+    /// </summary>
+    public string MessageBody { get; }
 
-	/// <summary>
-	/// Constructs a new instance with the given code.
-	/// The string representation forms the body of the message.
-	/// </summary>
-	public ValidationException(Enum errorCode)
-		: this(errorCode.ToString())
-	{
-		this.MessageBody = errorCode.ToString();
-	}
+    /// <summary>
+    /// Constructs a new instance with the given code.
+    /// The string representation forms the body of the message.
+    /// </summary>
+    public ValidationException(Enum errorCode)
+        : this(errorCode.ToString())
+    {
+        this.MessageBody = errorCode.ToString();
+    }
 
-	/// <summary>
-	/// Constructs a new instance with the given code and base message.
-	/// </summary>
-	public ValidationException(Enum errorCode, string message)
-		: this(errorCode.ToString(), message)
-	{
-	}
+    /// <summary>
+    /// Constructs a new instance with the given code and base message.
+    /// </summary>
+    public ValidationException(Enum errorCode, string message)
+        : this(errorCode.ToString(), message)
+    {
+    }
 
-	/// <summary>
-	/// Constructs a new instance with the given code, base message, and inner exception.
-	/// </summary>
-	public ValidationException(Enum errorCode, string message, Exception innerException)
-		: this(errorCode.ToString(), message, innerException)
-	{
-	}
+    /// <summary>
+    /// Constructs a new instance with the given code, base message, and inner exception.
+    /// </summary>
+    public ValidationException(Enum errorCode, string message, Exception innerException)
+        : this(errorCode.ToString(), message, innerException)
+    {
+    }
 
-	/// <summary>
-	/// Core constructor.
-	/// </summary>
-	private ValidationException(string errorCode, string? messageBody = null, Exception? innerException = null)
-		: base(GetMessage(errorCode ?? throw new ArgumentNullException(nameof(errorCode)), messageBody), innerException)
-	{
-		this.ErrorCode = errorCode;
-		this.MessageBody = messageBody ?? this.ErrorCode;
-	}
+    /// <summary>
+    /// Core constructor.
+    /// </summary>
+    private ValidationException(string errorCode, string? messageBody = null, Exception? innerException = null)
+        : base(GetMessage(errorCode ?? throw new ArgumentNullException(nameof(errorCode)), messageBody), innerException)
+    {
+        this.ErrorCode = errorCode;
+        this.MessageBody = messageBody ?? this.ErrorCode;
+    }
 
-	private static string GetMessage(string errorCode, string? messageBody = null)
-	{
-		return messageBody is null
-			? $"{errorCode}: {errorCode}."
-			: $"{errorCode}: {messageBody}"; // The message body generally consists of one or more full sentences, i.e. with their own trailing dot
-	}
+    private static string GetMessage(string errorCode, string? messageBody = null)
+    {
+        return messageBody is null
+            ? $"{errorCode}: {errorCode}."
+            : $"{errorCode}: {messageBody}"; // The message body generally consists of one or more full sentences, i.e. with their own trailing dot
+    }
 
-	#region Serialization
+    #region Serialization
 
-	[Obsolete("Exists because base class has serializable attribute, which strict tools then expect on subclasses as well", DiagnosticId = "SYSLIB0051")]
-	protected ValidationException(SerializationInfo info, StreamingContext context)
-		: base(info, context)
-	{
-		this.ErrorCode = info.GetString("ErrorCode") ?? throw new IOException("Failed to deserialize: ErrorCode is missing.");
-		this.MessageBody = info.GetString("MessageBody") ?? this.ErrorCode;
-	}
+    [Obsolete("Exists because base class has serializable attribute, which strict tools then expect on subclasses as well", DiagnosticId = "SYSLIB0051")]
+    protected ValidationException(SerializationInfo info, StreamingContext context)
+        : base(info, context)
+    {
+        this.ErrorCode = info.GetString("ErrorCode") ?? throw new IOException("Failed to deserialize: ErrorCode is missing.");
+        this.MessageBody = info.GetString("MessageBody") ?? this.ErrorCode;
+    }
 
-	[Obsolete("Exists because base class has serializable attribute, which strict tools then expect on subclasses as well", DiagnosticId = "SYSLIB0051")]
-	public override void GetObjectData(SerializationInfo info, StreamingContext context)
-	{
-		base.GetObjectData(info, context);
+    [Obsolete("Exists because base class has serializable attribute, which strict tools then expect on subclasses as well", DiagnosticId = "SYSLIB0051")]
+    public override void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+        base.GetObjectData(info, context);
 
-		info.AddValue("ErrorCode", this.ErrorCode);
-		info.AddValue("MessageBody", this.MessageBody);
-	}
+        info.AddValue("ErrorCode", this.ErrorCode);
+        info.AddValue("MessageBody", this.MessageBody);
+    }
 
-	#endregion
+    #endregion
 }

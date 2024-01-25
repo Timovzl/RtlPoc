@@ -10,17 +10,17 @@ namespace Rtl.News.RtlPoc.Application.Storage;
 /// </summary>
 public record class MutablePaginationToken
 {
-	public ushort PageSize { get; set; }
-	public string? ContinuationToken { get; set; }
+    public ushort PageSize { get; set; }
+    public string? ContinuationToken { get; set; }
 
-	public MutablePaginationToken(ushort pageSize)
-	{
-		this.PageSize = pageSize;
-	}
+    public MutablePaginationToken(ushort pageSize)
+    {
+        this.PageSize = pageSize;
+    }
 
-	public MutablePaginationToken(ushort pageSize, string? continuationToken)
-		: this(pageSize: pageSize)
-	{
-		this.ContinuationToken = continuationToken;
-	}
+    public MutablePaginationToken(ushort pageSize, string? continuationToken)
+        : this(pageSize: pageSize)
+    {
+        this.ContinuationToken = continuationToken;
+    }
 }

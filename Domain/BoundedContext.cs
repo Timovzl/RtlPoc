@@ -2,5 +2,5 @@
 
 public static class BoundedContext
 {
-	public const string Name = "RtlPoc";
+    public const string Name = "RtlPoc";
 }

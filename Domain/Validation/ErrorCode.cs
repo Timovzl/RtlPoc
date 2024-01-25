@@ -13,15 +13,15 @@ namespace Rtl.News.RtlPoc.Domain;
 /// </summary>
 public enum ErrorCode
 {
-	// DO NOT DELETE OR RENAME ITEMS
+    // DO NOT DELETE OR RENAME ITEMS
 
-	PartitionKey_ValueTooLong,
-	PartitionKey_ValueInvalid,
+    PartitionKey_ValueTooLong,
+    PartitionKey_ValueInvalid,
 
-	ExternalId_ValueNull,
-	ExternalId_ValueEmpty,
-	ExternalId_ValueTooLong,
-	ExternalId_ValueInvalid,
+    ExternalId_ValueNull,
+    ExternalId_ValueEmpty,
+    ExternalId_ValueTooLong,
+    ExternalId_ValueInvalid,
 
-	// DO NOT DELETE OR RENAME ITEMS
+    // DO NOT DELETE OR RENAME ITEMS
 }

@@ -9,49 +9,49 @@ namespace Rtl.News.RtlPoc.Application.IntegrationTests;
 
 public sealed class ExampleUseCaseTests : IntegrationTestBase
 {
-	[Fact]
-	public async Task ExecuteAsync_Regularly_ShouldHaveExpectedEffect()
-	{
-		// Arrange
+    [Fact]
+    public async Task ExecuteAsync_Regularly_ShouldHaveExpectedEffect()
+    {
+        // Arrange
 
-		using var idGeneratorScope = new DistributedId128GeneratorScope(new IncrementalIdGenerator());
+        using var idGeneratorScope = new DistributedId128GeneratorScope(new IncrementalIdGenerator());
 
-		var promiseSalvager = this.Host.Services.GetRequiredService<CosmosPromiseSalvager>();
+        var promiseSalvager = this.Host.Services.GetRequiredService<CosmosPromiseSalvager>();
 
-		// Act (immediate)
+        // Act (immediate)
 
-		using var clockScope = new ClockScope(FixedTime);
-		await this.GetApiResponse(HttpMethod.Post, "Example/AddEntities", new ExampleRequest());
+        using var clockScope = new ClockScope(FixedTime);
+        await this.GetApiResponse(HttpMethod.Post, "Example/AddEntities", new ExampleRequest());
 
-		// Assert (immediate)
+        // Assert (immediate)
 
-		var entities = await this.Repository.ListAsync<ExampleEntity>(query => query.Where(x => x.Name != null),
-			CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
-		var promises = await this.Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)),
-			CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
+        var entities = await this.Repository.ListAsync<ExampleEntity>(query => query.Where(x => x.Name != null),
+            CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
+        var promises = await this.Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)),
+            CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
 
-		// One entity was deleted immediately, the other promised to be deleted
-		var jan = entities.ShouldHaveSingleItem();
-		jan.Id.Value.ShouldBe("0000000000100000000par");
-		jan.Name.ShouldBe("Jan");
-		var promise = promises.ShouldHaveSingleItem();
-		promise.Id.ShouldBe("0000000000400000000par");
-		promise.Data.ShouldBe(entities.Single().Id.Value);
+        // One entity was deleted immediately, the other promised to be deleted
+        var jan = entities.ShouldHaveSingleItem();
+        jan.Id.Value.ShouldBe("0000000000100000000par");
+        jan.Name.ShouldBe("Jan");
+        var promise = promises.ShouldHaveSingleItem();
+        promise.Id.ShouldBe("0000000000400000000par");
+        promise.Data.ShouldBe(entities.Single().Id.Value);
 
-		// Act (eventual)
+        // Act (eventual)
 
-		using var laterClockScope = new ClockScope(FixedTime.Add(Promise.ClaimDuration));
-		await promiseSalvager.TryFulfillDuePromisesAsync(CancellationToken.None);
+        using var laterClockScope = new ClockScope(FixedTime.Add(Promise.ClaimDuration));
+        await promiseSalvager.TryFulfillDuePromisesAsync(CancellationToken.None);
 
-		// Assert (eventual)
+        // Assert (eventual)
 
-		entities = await this.Repository.ListAsync<ExampleEntity>(query => query.Where(x => x.Name != null),
-			CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
-		promises = await this.Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)),
-			CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
+        entities = await this.Repository.ListAsync<ExampleEntity>(query => query.Where(x => x.Name != null),
+            CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
+        promises = await this.Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)),
+            CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
 
-		// The remaining promise should have been fulfilled, i.e. deleted the remaining entity and itself
-		entities.ShouldBeEmpty();
-		promises.ShouldBeEmpty();
-	}
+        // The remaining promise should have been fulfilled, i.e. deleted the remaining entity and itself
+        entities.ShouldBeEmpty();
+        promises.ShouldBeEmpty();
+    }
 }

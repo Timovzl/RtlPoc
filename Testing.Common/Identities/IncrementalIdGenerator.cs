@@ -13,31 +13,31 @@ namespace Rtl.News.RtlPoc.Testing.Common;
 /// </summary>
 public sealed class IncrementalIdGenerator : IDistributedId128Generator
 {
-	private readonly DataPartitionKey _partitionKey;
-	private readonly ulong _partitionKeyNumericValue;
+    private readonly DataPartitionKey _partitionKey;
+    private readonly ulong _partitionKeyNumericValue;
 
-	private ulong _previousIncrement = 0;
+    private ulong _previousIncrement = 0;
 
-	/// <param name="partitionKey">The partition key that determines the last few characters, or null to use "par".</param>
-	public IncrementalIdGenerator(DataPartitionKey? partitionKey = null)
-	{
-		this._partitionKey = partitionKey ?? DataPartitionKey.CreateForArbitraryString("par");
+    /// <param name="partitionKey">The partition key that determines the last few characters, or null to use "par".</param>
+    public IncrementalIdGenerator(DataPartitionKey? partitionKey = null)
+    {
+        this._partitionKey = partitionKey ?? DataPartitionKey.CreateForArbitraryString("par");
 
-		if (this._partitionKey.Value.Length != 3)
-			throw new ArgumentException("The partition key should have a length of 3 characters.");
+        if (this._partitionKey.Value.Length != 3)
+            throw new ArgumentException("The partition key should have a length of 3 characters.");
 
-		this._partitionKeyNumericValue = (ulong)AlphanumericIdEncoder.DecodeLongOrDefault($"00000000{this._partitionKey.Value}")!.Value;
-	}
+        this._partitionKeyNumericValue = (ulong)AlphanumericIdEncoder.DecodeLongOrDefault($"00000000{this._partitionKey.Value}")!.Value;
+    }
 
-	public Guid CreateGuid()
-	{
-		return this.CreateId().ToGuid();
-	}
+    public Guid CreateGuid()
+    {
+        return this.CreateId().ToGuid();
+    }
 
-	public UInt128 CreateId()
-	{
-		var id = (UInt128)Interlocked.Increment(ref this._previousIncrement) << 64;
-		id |= this._partitionKeyNumericValue;
-		return id;
-	}
+    public UInt128 CreateId()
+    {
+        var id = (UInt128)Interlocked.Increment(ref this._previousIncrement) << 64;
+        id |= this._partitionKeyNumericValue;
+        return id;
+    }
 }

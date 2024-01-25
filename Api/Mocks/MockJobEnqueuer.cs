@@ -1,5 +1,3 @@
-using Rtl.News.RtlPoc.Application.Shared;
-
 namespace Rtl.News.RtlPoc.Api.Mocks;
 
 /// <summary>
@@ -12,13 +10,13 @@ namespace Rtl.News.RtlPoc.Api.Mocks;
 /// </summary>
 public sealed class MockJobEnqueuer : IJobEnqueuer
 {
-	public Task EnqueueJob(string jobNamePrefix)
-	{
-		throw new NotImplementedException("The API does not currently have the ability to enqueue jobs. Hangfire connectivity would need to be deliberately installed first.");
-	}
+    public Task EnqueueJob(string jobNamePrefix)
+    {
+        throw new NotImplementedException("The API does not currently have the ability to enqueue jobs. Hangfire connectivity would need to be deliberately installed first.");
+    }
 
-	public Task ScheduleJob(string jobNamePrefix, DateTimeOffset instant)
-	{
-		throw new NotImplementedException("The API does not currently have the ability to enqueue jobs. Hangfire connectivity would need to be deliberately installed first.");
-	}
+    public Task ScheduleJob(string jobNamePrefix, DateTimeOffset instant)
+    {
+        throw new NotImplementedException("The API does not currently have the ability to enqueue jobs. Hangfire connectivity would need to be deliberately installed first.");
+    }
 }

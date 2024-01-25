@@ -1,4 +1,4 @@
-namespace Rtl.News.RtlPoc.Domain.Shared;
+﻿namespace Rtl.News.RtlPoc.Domain.Shared;
 
 /// <summary>
 /// <para>
@@ -8,21 +8,21 @@ namespace Rtl.News.RtlPoc.Domain.Shared;
 [WrapperValueObject<string>]
 public sealed partial class ExternalId : IIdentity<string>, IComparable<ExternalId>
 {
-	protected override StringComparison StringComparison => StringComparison.Ordinal;
+    protected override StringComparison StringComparison => StringComparison.Ordinal;
 
-	public const ushort MaxLength = 50;
+    public const ushort MaxLength = 50;
 
-	public string Value { get; private init; }
+    public string Value { get; private init; }
 
-	public ExternalId(string value)
-	{
-		this.Value = value ?? throw new NullValidationException(ErrorCode.ExternalId_ValueNull, nameof(value));
+    public ExternalId(string value)
+    {
+        this.Value = value ?? throw new NullValidationException(ErrorCode.ExternalId_ValueNull, nameof(value));
 
-		if (this.Value.Length == 0)
-			throw new ValidationException(ErrorCode.ExternalId_ValueEmpty, "An external ID value must not be empty.");
-		if (this.Value.Length > MaxLength)
-			throw new ValidationException(ErrorCode.ExternalId_ValueTooLong, $"An external ID value must not be over {MaxLength} characters long.");
-		if (ContainsNonAsciiOrNonPrintableOrWhitespaceCharacters(this.Value) || this.Value.AsSpan().IndexOfAny('\'', '"') >= 0)
-			throw new ValidationException(ErrorCode.ExternalId_ValueInvalid, "An external ID value must consist of printable, non-whitespace, non-quote ASCII characters.");
-	}
+        if (this.Value.Length == 0)
+            throw new ValidationException(ErrorCode.ExternalId_ValueEmpty, "An external ID value must not be empty.");
+        if (this.Value.Length > MaxLength)
+            throw new ValidationException(ErrorCode.ExternalId_ValueTooLong, $"An external ID value must not be over {MaxLength} characters long.");
+        if (ContainsNonAsciiOrNonPrintableOrWhitespaceCharacters(this.Value) || this.Value.AsSpan().IndexOfAny('\'', '"') >= 0)
+            throw new ValidationException(ErrorCode.ExternalId_ValueInvalid, "An external ID value must consist of printable, non-whitespace, non-quote ASCII characters.");
+    }
 }

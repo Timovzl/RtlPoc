@@ -1,4 +1,4 @@
-#nullable disable // Disable nullable, to avoid giving the package consumer's compiler any indication of null vs. non-null, which are unclear with optionals
+﻿#nullable disable // Disable nullable, to avoid giving the package consumer's compiler any indication of null vs. non-null, which are unclear with optionals
 
 namespace Rtl.News.RtlPoc.Contracts;
 
@@ -20,52 +20,52 @@ namespace Rtl.News.RtlPoc.Contracts;
 /// <param name="value">If <paramref name="hasValue"/> is false, this parameter is ignored.</param>
 public readonly struct Optional<T>(T value, bool hasValue = true)
 {
-	public override string ToString() => this.HasValue ? this.ValueOrDefault?.ToString() : "[Omitted Optional]";
+    public override string ToString() => this.HasValue ? this.ValueOrDefault?.ToString() : "[Omitted Optional]";
 
-	/// <summary>
-	/// If true, this object contains a value (which might be null).
-	/// If false, the object is uninitialized, i.e. "missing".
-	/// </summary>
-	public bool HasValue { get; } = hasValue;
+    /// <summary>
+    /// If true, this object contains a value (which might be null).
+    /// If false, the object is uninitialized, i.e. "missing".
+    /// </summary>
+    public bool HasValue { get; } = hasValue;
 
-	/// <summary>
-	/// The contained value, which might be null, or the default value for <typeparamref name="T"/>.
-	/// </summary>
-	public T ValueOrDefault { get; } = hasValue ? value : default;
+    /// <summary>
+    /// The contained value, which might be null, or the default value for <typeparamref name="T"/>.
+    /// </summary>
+    public T ValueOrDefault { get; } = hasValue ? value : default;
 
-	/// <summary>
-	/// <para>
-	/// Returns the contained value, which might be null.
-	/// </para>
-	/// <para>
-	/// This method throws if <see cref="HasValue"/> is false.
-	/// </para>
-	/// </summary>
-	public T GetValue()
-	{
-		return this.HasValue
-			? this.ValueOrDefault
-			: ThrowNoValue();
-	}
+    /// <summary>
+    /// <para>
+    /// Returns the contained value, which might be null.
+    /// </para>
+    /// <para>
+    /// This method throws if <see cref="HasValue"/> is false.
+    /// </para>
+    /// </summary>
+    public T GetValue()
+    {
+        return this.HasValue
+            ? this.ValueOrDefault
+            : ThrowNoValue();
+    }
 
-	/// <summary>
-	/// <para>
-	/// If the <see cref="Optional{T}"/> was deliberately populated, this method returns its value (which might be null).
-	/// </para>
-	/// <para>
-	/// A default <see cref="Optional{T}"/> instance results in the <paramref name="provided"/> value instead.
-	/// </para>
-	/// </summary>
-	public T GetValueOrProvided(T provided)
-	{
-		var result = this.HasValue ? this.ValueOrDefault : provided;
-		return result;
-	}
+    /// <summary>
+    /// <para>
+    /// If the <see cref="Optional{T}"/> was deliberately populated, this method returns its value (which might be null).
+    /// </para>
+    /// <para>
+    /// A default <see cref="Optional{T}"/> instance results in the <paramref name="provided"/> value instead.
+    /// </para>
+    /// </summary>
+    public T GetValueOrProvided(T provided)
+    {
+        var result = this.HasValue ? this.ValueOrDefault : provided;
+        return result;
+    }
 
-	private static T ThrowNoValue()
-	{
-		throw new InvalidOperationException($"Attempted to obtain the value of an {nameof(Optional<object>)} that was not provided.");
-	}
+    private static T ThrowNoValue()
+    {
+        throw new InvalidOperationException($"Attempted to obtain the value of an {nameof(Optional<object>)} that was not provided.");
+    }
 
-	public static implicit operator Optional<T>(T value) => new Optional<T>(value);
+    public static implicit operator Optional<T>(T value) => new Optional<T>(value);
 }

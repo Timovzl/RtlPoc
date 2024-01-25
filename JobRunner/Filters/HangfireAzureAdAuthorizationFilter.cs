@@ -7,20 +7,20 @@ namespace Rtl.News.RtlPoc.JobRunner.Filters;
 /// </summary>
 internal sealed class HangfireAzureAdAuthorizationFilter : IDashboardAuthorizationFilter
 {
-	public bool Authorize(DashboardContext context)
-	{
-		var httpContext = context.GetHttpContext();
+    public bool Authorize(DashboardContext context)
+    {
+        var httpContext = context.GetHttpContext();
 
-		var isAuthenticated = httpContext.User.Identity?.IsAuthenticated ?? false;
+        var isAuthenticated = httpContext.User.Identity?.IsAuthenticated ?? false;
 
-		if (!isAuthenticated && httpContext.Request.Method == "GET")
-		{
-			httpContext.Response.Redirect("/MicrosoftIdentity/Account/SignIn");
+        if (!isAuthenticated && httpContext.Request.Method == "GET")
+        {
+            httpContext.Response.Redirect("/MicrosoftIdentity/Account/SignIn");
 
-			// We must return true for the redirect to work, so to be safe, we only do this for GET requests
-			return true;
-		}
+            // We must return true for the redirect to work, so to be safe, we only do this for GET requests
+            return true;
+        }
 
-		return isAuthenticated;
-	}
+        return isAuthenticated;
+    }
 }

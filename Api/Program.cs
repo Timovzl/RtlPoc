@@ -1,75 +1,75 @@
+using Microsoft.OpenApi.Models;
+using Prometheus;
 using Rtl.News.RtlPoc.Application;
 using Rtl.News.RtlPoc.Application.ExceptionHandlers;
 using Rtl.News.RtlPoc.Infrastructure.Databases;
-using Microsoft.OpenApi.Models;
-using Prometheus;
 using Serilog;
 
 namespace Rtl.News.RtlPoc.Api;
 
 public static class Program
 {
-	public static async Task Main(string[] args)
-	{
-		var builder = WebApplication.CreateBuilder(args);
+    public static async Task Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
 
-		builder.Host.UseSerilog((context, logger) => logger.ReadFrom.Configuration(context.Configuration));
+        builder.Host.UseSerilog((context, logger) => logger.ReadFrom.Configuration(context.Configuration));
 
-		builder.Services.AddApplicationLayer(builder.Configuration);
-		builder.Services.AddDatabaseInfrastructureLayer(builder.Configuration);
-		builder.Services.AddDatabaseMigrations();
+        builder.Services.AddApplicationLayer(builder.Configuration);
+        builder.Services.AddDatabaseInfrastructureLayer(builder.Configuration);
+        builder.Services.AddDatabaseMigrations();
 
-		// Register the mock dependencies
-		builder.Services.Scan(scanner => scanner.FromAssemblies(typeof(Program).Assembly)
-			.AddClasses(c => c.Where(type => type.Name.StartsWith("Mock")))
-			.AsSelfWithInterfaces().WithSingletonLifetime());
+        // Register the mock dependencies
+        builder.Services.Scan(scanner => scanner.FromAssemblies(typeof(Program).Assembly)
+            .AddClasses(c => c.Where(type => type.Name.StartsWith("Mock")))
+            .AsSelfWithInterfaces().WithSingletonLifetime());
 
-		builder.Services.AddApplicationControllers();
+        builder.Services.AddApplicationControllers();
 
-		builder.Services.AddEndpointsApiExplorer();
-		builder.Services.AddSwaggerGen(swagger =>
-		{
-			swagger.CustomSchemaIds(type => type.FullName!["Rtl.News.RtlPoc.Contracts.".Length..]);
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(swagger =>
+        {
+            swagger.CustomSchemaIds(type => type.FullName!["Rtl.News.RtlPoc.Contracts.".Length..]);
 
-			swagger.SupportNonNullableReferenceTypes();
-			swagger.SwaggerDoc("V1", new OpenApiInfo()
-			{
-				Title = "RtlPoc API",
-				Description = """
+            swagger.SupportNonNullableReferenceTypes();
+            swagger.SwaggerDoc("V1", new OpenApiInfo()
+            {
+                Title = "RtlPoc API",
+                Description = """
 				<p>This page documents the RtlPoc API.</p>
 				""",
-			});
+            });
 
-			var apiDocumentationFilePath = Path.Combine(AppContext.BaseDirectory, $"{typeof(Program).Assembly.GetName().Name}.xml");
-			swagger.IncludeXmlComments(apiDocumentationFilePath);
-			var contractsDocumentationFilePath = Path.Combine(AppContext.BaseDirectory, $"{typeof(Contracts.Optional<object>).Assembly.GetName().Name}.xml");
-			swagger.IncludeXmlComments(contractsDocumentationFilePath);
-		});
+            var apiDocumentationFilePath = Path.Combine(AppContext.BaseDirectory, $"{typeof(Program).Assembly.GetName().Name}.xml");
+            swagger.IncludeXmlComments(apiDocumentationFilePath);
+            var contractsDocumentationFilePath = Path.Combine(AppContext.BaseDirectory, $"{typeof(Contracts.Optional<object>).Assembly.GetName().Name}.xml");
+            swagger.IncludeXmlComments(contractsDocumentationFilePath);
+        });
 
-		builder.Services.AddHealthChecks();
+        builder.Services.AddHealthChecks();
 
-		var app = builder.Build();
-		
-		if (builder.Environment.IsDevelopment())
-			app.UseDeveloperExceptionPage();
+        var app = builder.Build();
 
-		app.UseExceptionHandler(app => app.Run(async context =>
-			await context.RequestServices.GetRequiredService<RequestExceptionHandler>().HandleExceptionAsync()));
+        if (builder.Environment.IsDevelopment())
+            app.UseDeveloperExceptionPage();
 
-		app.UseRouting();
+        app.UseExceptionHandler(app => app.Run(async context =>
+            await context.RequestServices.GetRequiredService<RequestExceptionHandler>().HandleExceptionAsync()));
 
-		// Expose a health check endpoint
-		app.UseHealthChecks("/health");
+        app.UseRouting();
 
-		// Expose Prometheus metrics
-		app.UseMetricServer();
-		app.UseHttpMetrics();
+        // Expose a health check endpoint
+        app.UseHealthChecks("/health");
 
-		app.UseSwagger();
-		app.UseSwaggerUI();
+        // Expose Prometheus metrics
+        app.UseMetricServer();
+        app.UseHttpMetrics();
 
-		app.UseApplicationControllers();
+        app.UseSwagger();
+        app.UseSwaggerUI();
 
-		await app.RunAsync();
-	}
+        app.UseApplicationControllers();
+
+        await app.RunAsync();
+    }
 }

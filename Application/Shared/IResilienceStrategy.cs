@@ -10,8 +10,8 @@ namespace Rtl.News.RtlPoc.Application.Shared;
 /// </summary>
 public interface IResilienceStrategy
 {
-	Task ExecuteAsync(Func<CancellationToken, Task> operation, CancellationToken cancellationToken);
-	Task<TResult> ExecuteAsync<TResult>(Func<CancellationToken, Task<TResult>> operation, CancellationToken cancellationToken);
+    Task ExecuteAsync(Func<CancellationToken, Task> operation, CancellationToken cancellationToken);
+    Task<TResult> ExecuteAsync<TResult>(Func<CancellationToken, Task<TResult>> operation, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -19,18 +19,18 @@ public interface IResilienceStrategy
 /// </summary>
 public sealed class BasicResilienceStrategy : IResilienceStrategy
 {
-	public BasicResilienceStrategy(ILogger<BasicResilienceStrategy> logger)
-	{
-		logger.LogWarning("A basic execution strategy was used, which is generally only intended for automated testing");
-	}
+    public BasicResilienceStrategy(ILogger<BasicResilienceStrategy> logger)
+    {
+        logger.LogWarning("A basic execution strategy was used, which is generally only intended for automated testing");
+    }
 
-	public Task ExecuteAsync(Func<CancellationToken, Task> operation, CancellationToken cancellationToken)
-	{
-		return operation(cancellationToken);
-	}
+    public Task ExecuteAsync(Func<CancellationToken, Task> operation, CancellationToken cancellationToken)
+    {
+        return operation(cancellationToken);
+    }
 
-	public Task<TResult> ExecuteAsync<TResult>(Func<CancellationToken, Task<TResult>> operation, CancellationToken cancellationToken)
-	{
-		return operation(cancellationToken);
-	}
+    public Task<TResult> ExecuteAsync<TResult>(Func<CancellationToken, Task<TResult>> operation, CancellationToken cancellationToken)
+    {
+        return operation(cancellationToken);
+    }
 }

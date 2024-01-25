@@ -11,26 +11,26 @@ namespace Rtl.News.RtlPoc.Application.Logging;
 /// </summary>
 file sealed class MetricLogEventSink : ILogEventSink
 {
-	private static readonly Counter LogCounter = Metrics.CreateCounter(name: "log_count", help: "Counts log entries per severity.", labelNames: "severity");
+    private static readonly Counter LogCounter = Metrics.CreateCounter(name: "log_count", help: "Counts log entries per severity.", labelNames: "severity");
 
-	public void Emit(LogEvent logEvent)
-	{
-		LogCounter.WithLabels(logEvent.Level.ToString()).Inc();
-	}
+    public void Emit(LogEvent logEvent)
+    {
+        LogCounter.WithLabels(logEvent.Level.ToString()).Inc();
+    }
 }
 
 public static class MetricLogEventSinkExtensions
 {
-	/// <summary>
-	/// <para>
-	/// Registers the <see cref="MetricLogEventSink"/>.
-	/// </para>
-	/// <para>
-	/// Can be invoked by specifying a sink with the same name as this method in the configuration.
-	/// </para>
-	/// </summary>
-	public static LoggerConfiguration Metrics(this LoggerSinkConfiguration sinkConfiguration)
-	{
-		return sinkConfiguration.Sink(new MetricLogEventSink(), LevelAlias.Minimum);
-	}
+    /// <summary>
+    /// <para>
+    /// Registers the <see cref="MetricLogEventSink"/>.
+    /// </para>
+    /// <para>
+    /// Can be invoked by specifying a sink with the same name as this method in the configuration.
+    /// </para>
+    /// </summary>
+    public static LoggerConfiguration Metrics(this LoggerSinkConfiguration sinkConfiguration)
+    {
+        return sinkConfiguration.Sink(new MetricLogEventSink(), LevelAlias.Minimum);
+    }
 }

@@ -7,8 +7,8 @@ namespace Rtl.News.RtlPoc.JobRunner.Filters;
 /// </summary>
 internal sealed class HangfireNoAuthorizationFilter : IDashboardAuthorizationFilter
 {
-	public bool Authorize(DashboardContext context)
-	{
-		return true;
-	}
+    public bool Authorize(DashboardContext context)
+    {
+        return true;
+    }
 }

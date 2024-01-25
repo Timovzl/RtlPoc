@@ -14,16 +14,16 @@ namespace Rtl.News.RtlPoc.Application.Shared;
 /// <param name="resilienceStrategy">Injects the general <see cref="IResilienceStrategy"/> for performing application-level code in a resilient way.</param>
 /// <param name="useCase">Injects the <see cref="IUseCase"/> to expose.</param>
 public sealed class ResilientService<TUseCase>(
-	IResilienceStrategy resilienceStrategy,
-	TUseCase useCase)
-	where TUseCase : UseCase // For use cases with a return value, instead use the more generic class that also takes a result type
+    IResilienceStrategy resilienceStrategy,
+    TUseCase useCase)
+    where TUseCase : UseCase // For use cases with a return value, instead use the more generic class that also takes a result type
 {
-	public Task ExecuteAsync(CancellationToken cancellationToken)
-	{
-		return resilienceStrategy.ExecuteAsync(
-			operation: useCase.ExecuteAsync,
-			cancellationToken: cancellationToken);
-	}
+    public Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        return resilienceStrategy.ExecuteAsync(
+            operation: useCase.ExecuteAsync,
+            cancellationToken: cancellationToken);
+    }
 }
 
 /// <summary>
@@ -37,14 +37,14 @@ public sealed class ResilientService<TUseCase>(
 /// <param name="resilienceStrategy">Injects the general <see cref="IResilienceStrategy"/> for performing application-level code in an resilient way.</param>
 /// <param name="useCase">Injects the <see cref="UseCase{TResult}"/> to expose.</param>
 public sealed class ResilientService<TUseCase, TResult>(
-	IResilienceStrategy resilienceStrategy,
-	TUseCase useCase)
-	where TUseCase : UseCase<TResult>
+    IResilienceStrategy resilienceStrategy,
+    TUseCase useCase)
+    where TUseCase : UseCase<TResult>
 {
-	public Task<TResult> ExecuteAsync(CancellationToken cancellationToken)
-	{
-		return resilienceStrategy.ExecuteAsync(
-			operation: useCase.ExecuteAsync,
-			cancellationToken: cancellationToken);
-	}
+    public Task<TResult> ExecuteAsync(CancellationToken cancellationToken)
+    {
+        return resilienceStrategy.ExecuteAsync(
+            operation: useCase.ExecuteAsync,
+            cancellationToken: cancellationToken);
+    }
 }

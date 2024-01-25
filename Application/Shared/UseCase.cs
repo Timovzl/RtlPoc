@@ -19,7 +19,7 @@ public interface IUseCase : IApplicationService
 /// </summary>
 public abstract class UseCase : IUseCase
 {
-	public abstract Task ExecuteAsync(CancellationToken cancellationToken);
+    public abstract Task ExecuteAsync(CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -27,5 +27,5 @@ public abstract class UseCase : IUseCase
 /// </summary>
 public abstract class UseCase<TResult> : IUseCase
 {
-	public abstract Task<TResult> ExecuteAsync(CancellationToken cancellationToken);
+    public abstract Task<TResult> ExecuteAsync(CancellationToken cancellationToken);
 }

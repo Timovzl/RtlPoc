@@ -32,7 +32,7 @@ public sealed class RequestExceptionHandler(
         else if ((exception is OperationCanceledException opCanceledException) && opCanceledException.CancellationToken == httpContextAccessor.HttpContext?.RequestAborted)
             logger.LogInformation(exception, "The caller cancelled the request.");
         else if (exception is ValidationException validationException)
-            await this.HandleValidationExceptionAsync(validationException);
+            await HandleValidationExceptionAsync(validationException);
         else if (exception is not null)
             logger.LogError(exception, "The request handler has thrown an exception.");
     }

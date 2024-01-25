@@ -14,6 +14,6 @@ public interface IJobEnqueuer
     Task ScheduleJob(string jobNamePrefix, TimeSpan delay)
     {
         var instant = new DateTimeOffset(Clock.UtcNow).Add(delay);
-        return this.ScheduleJob(jobNamePrefix, instant);
+        return ScheduleJob(jobNamePrefix, instant);
     }
 }

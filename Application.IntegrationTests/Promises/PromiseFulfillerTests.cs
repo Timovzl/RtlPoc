@@ -16,9 +16,9 @@ public sealed class PromiseFulfillerTests : IntegrationTestBase
         [IdempotentPromiseFulfiller("PromiseFulfillerTests_FulfillAsync")]
         public Task FulfillAsync(Promise _, CancellationToken cancellationToken)
         {
-            this.InvocationCount++;
+            InvocationCount++;
 
-            if (this.ShouldThrow)
+            if (ShouldThrow)
                 throw new InvalidDataException("Test exception.");
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -27,18 +27,18 @@ public sealed class PromiseFulfillerTests : IntegrationTestBase
         }
     }
 
-    private PromiseFulfiller Instance => this.Host.Services.GetRequiredService<PromiseFulfiller>();
+    private PromiseFulfiller Instance => Host.Services.GetRequiredService<PromiseFulfiller>();
 
     private ILogger<PromiseFulfiller> Logger { get; }
 
-    private TestUseCase UseCase => this.Host.Services.GetRequiredService<TestUseCase>();
+    private TestUseCase UseCase => Host.Services.GetRequiredService<TestUseCase>();
 
     public PromiseFulfillerTests()
     {
-        this.Logger = Substitute.For<ILogger<PromiseFulfiller>>();
+        Logger = Substitute.For<ILogger<PromiseFulfiller>>();
 
-        this.ConfigureServices(services => services.AddSingleton<TestUseCase>());
-        this.ConfigureServices(services => services.AddSingleton(this.Logger));
+        ConfigureServices(services => services.AddSingleton<TestUseCase>());
+        ConfigureServices(services => services.AddSingleton(Logger));
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class PromiseFulfillerTests : IntegrationTestBase
         var promise = Promise.Create((TestUseCase useCase) => useCase.FulfillAsync, data: "Hello");
         promise.Delay(TimeSpan.Zero);
 
-        await using var transactionForAdding = await this.Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
+        await using var transactionForAdding = await Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
         await transactionForAdding
             .AddAsync(promise)
             .CommitAsync();
@@ -57,30 +57,30 @@ public sealed class PromiseFulfillerTests : IntegrationTestBase
         promise.SuppressImmediateFulfillment();
         await transactionForAdding.DisposeAsync();
 
-        promise = await this.Repository.LoadAsync<Promise>(query => query.Where(x => x.Id == promise.Id), CancellationToken.None, new ReadOptions() { FullyConsistent = true });
+        promise = await Repository.LoadAsync<Promise>(query => query.Where(x => x.Id == promise.Id), CancellationToken.None, new ReadOptions() { FullyConsistent = true });
 
         promise.ShouldNotBeNull();
 
         promise.ClaimForAttempt();
 
-        await using var transactionForUpdating = await this.Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
+        await using var transactionForUpdating = await Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
         await transactionForUpdating
             .UpdateAsync(promise)
             .CommitAsync();
 
-        this.UseCase.ShouldThrow = true;
+        UseCase.ShouldThrow = true;
 
         // Act
 
-        await this.Instance.TryFulfillAsync(promise, CancellationToken.None);
+        await Instance.TryFulfillAsync(promise, CancellationToken.None);
 
         // Assert
 
-        this.Logger.Received(1).Log(LogLevel.Warning, message =>
+        Logger.Received(1).Log(LogLevel.Warning, message =>
             message.Contains("PromiseFulfillerTests_FulfillAsync") &&
             message.Contains("Test exception."));
 
-        this.Logger.Received(0).Log(LogLevel.Error);
+        Logger.Received(0).Log(LogLevel.Error);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public sealed class PromiseFulfillerTests : IntegrationTestBase
         var promise = Promise.Create((TestUseCase useCase) => useCase.FulfillAsync, data: "Hello");
         promise.Delay(TimeSpan.Zero);
 
-        await using var transactionForAdding = await this.Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
+        await using var transactionForAdding = await Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
         await transactionForAdding
             .AddAsync(promise)
             .CommitAsync();
@@ -99,26 +99,26 @@ public sealed class PromiseFulfillerTests : IntegrationTestBase
         promise.SuppressImmediateFulfillment();
         await transactionForAdding.DisposeAsync();
 
-        promise = await this.Repository.LoadAsync<Promise>(query => query.Where(x => x.Id == promise.Id), CancellationToken.None, new ReadOptions() { FullyConsistent = true });
+        promise = await Repository.LoadAsync<Promise>(query => query.Where(x => x.Id == promise.Id), CancellationToken.None, new ReadOptions() { FullyConsistent = true });
 
         promise.ShouldNotBeNull();
 
         promise.ClaimForAttempt();
 
-        await using var transactionForUpdating = await this.Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
+        await using var transactionForUpdating = await Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
         await transactionForUpdating
             .UpdateAsync(promise)
             .CommitAsync();
 
         // Act
 
-        await this.Instance.TryFulfillAsync(promise, new CancellationToken(canceled: true));
+        await Instance.TryFulfillAsync(promise, new CancellationToken(canceled: true));
 
         // Assert
 
-        this.Logger.Received(0).Log(LogLevel.Information);
-        this.Logger.Received(0).Log(LogLevel.Warning);
-        this.Logger.Received(0).Log(LogLevel.Error);
+        Logger.Received(0).Log(LogLevel.Information);
+        Logger.Received(0).Log(LogLevel.Warning);
+        Logger.Received(0).Log(LogLevel.Error);
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public sealed class PromiseFulfillerTests : IntegrationTestBase
 
         var promise = Promise.Create((TestUseCase useCase) => useCase.FulfillAsync, data: "Hello");
 
-        await using var transaction = await this.Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
+        await using var transaction = await Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
         await transaction
             .AddAsync(promise)
             .CommitAsync();
@@ -137,14 +137,14 @@ public sealed class PromiseFulfillerTests : IntegrationTestBase
 
         // Act
 
-        await this.Instance.TryFulfillAsync(promise, CancellationToken.None);
+        await Instance.TryFulfillAsync(promise, CancellationToken.None);
 
         // Assert
 
-        this.UseCase.InvocationCount.ShouldBe(1);
+        UseCase.InvocationCount.ShouldBe(1);
 
-        this.Logger.Received(0).Log(LogLevel.Warning);
-        this.Logger.Received(0).Log(LogLevel.Error);
+        Logger.Received(0).Log(LogLevel.Warning);
+        Logger.Received(0).Log(LogLevel.Error);
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public sealed class PromiseFulfillerTests : IntegrationTestBase
         var promise = Promise.Create((TestUseCase useCase) => useCase.FulfillAsync, data: "Hello");
         promise.Delay(TimeSpan.Zero);
 
-        await using var transactionForAdding = await this.Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
+        await using var transactionForAdding = await Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
         await transactionForAdding
             .AddAsync(promise)
             .CommitAsync();
@@ -163,13 +163,13 @@ public sealed class PromiseFulfillerTests : IntegrationTestBase
         promise.SuppressImmediateFulfillment();
         await transactionForAdding.DisposeAsync();
 
-        promise = await this.Repository.LoadAsync<Promise>(query => query.Where(x => x.Id == promise.Id), CancellationToken.None, new ReadOptions() { FullyConsistent = true });
+        promise = await Repository.LoadAsync<Promise>(query => query.Where(x => x.Id == promise.Id), CancellationToken.None, new ReadOptions() { FullyConsistent = true });
 
         promise.ShouldNotBeNull();
 
         promise.ClaimForAttempt();
 
-        await using var transactionForUpdating = await this.Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
+        await using var transactionForUpdating = await Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
         await transactionForUpdating
             .UpdateAsync(promise)
             .CommitAsync();
@@ -178,16 +178,16 @@ public sealed class PromiseFulfillerTests : IntegrationTestBase
 
         // Act
 
-        await this.Instance.TryFulfillAsync(promise, CancellationToken.None);
+        await Instance.TryFulfillAsync(promise, CancellationToken.None);
 
         // Assert
 
-        this.UseCase.InvocationCount.ShouldBe(1);
+        UseCase.InvocationCount.ShouldBe(1);
 
-        this.Logger.Received(0).Log(LogLevel.Warning);
-        this.Logger.Received(0).Log(LogLevel.Error);
+        Logger.Received(0).Log(LogLevel.Warning);
+        Logger.Received(0).Log(LogLevel.Error);
 
-        var remainingPromises = await this.Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)), CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
+        var remainingPromises = await Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)), CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
         remainingPromises.ShouldBeEmpty();
     }
 }

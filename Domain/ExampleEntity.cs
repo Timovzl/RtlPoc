@@ -14,6 +14,6 @@ public sealed class ExampleEntity : PocEntity<ExampleEntityId>
         string name)
         : base(IdGenerator.CreateId())
     {
-        this.Name = name ?? throw new ArgumentNullException(nameof(name));
+        Name = name ?? throw new ArgumentNullException(nameof(name));
     }
 }

@@ -10,7 +10,7 @@ public sealed class CosmosRepositoryTests : IntegrationTestBase
     {
         var id = IdGenerator.CreateId();
 
-        var repo = this.Host.Services.GetRequiredService<CosmosRepository>();
+        var repo = Host.Services.GetRequiredService<CosmosRepository>();
 
         var result = await repo.GetAsync<Promise>(id, (DataPartitionKey)id, CancellationToken.None);
 

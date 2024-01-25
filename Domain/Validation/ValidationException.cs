@@ -34,7 +34,7 @@ public class ValidationException : Exception
     public ValidationException(Enum errorCode)
         : this(errorCode.ToString())
     {
-        this.MessageBody = errorCode.ToString();
+        MessageBody = errorCode.ToString();
     }
 
     /// <summary>
@@ -59,8 +59,8 @@ public class ValidationException : Exception
     private ValidationException(string errorCode, string? messageBody = null, Exception? innerException = null)
         : base(GetMessage(errorCode ?? throw new ArgumentNullException(nameof(errorCode)), messageBody), innerException)
     {
-        this.ErrorCode = errorCode;
-        this.MessageBody = messageBody ?? this.ErrorCode;
+        ErrorCode = errorCode;
+        MessageBody = messageBody ?? ErrorCode;
     }
 
     private static string GetMessage(string errorCode, string? messageBody = null)
@@ -76,8 +76,8 @@ public class ValidationException : Exception
     protected ValidationException(SerializationInfo info, StreamingContext context)
         : base(info, context)
     {
-        this.ErrorCode = info.GetString("ErrorCode") ?? throw new IOException("Failed to deserialize: ErrorCode is missing.");
-        this.MessageBody = info.GetString("MessageBody") ?? this.ErrorCode;
+        ErrorCode = info.GetString("ErrorCode") ?? throw new IOException("Failed to deserialize: ErrorCode is missing.");
+        MessageBody = info.GetString("MessageBody") ?? ErrorCode;
     }
 
     [Obsolete("Exists because base class has serializable attribute, which strict tools then expect on subclasses as well", DiagnosticId = "SYSLIB0051")]
@@ -85,8 +85,8 @@ public class ValidationException : Exception
     {
         base.GetObjectData(info, context);
 
-        info.AddValue("ErrorCode", this.ErrorCode);
-        info.AddValue("MessageBody", this.MessageBody);
+        info.AddValue("ErrorCode", ErrorCode);
+        info.AddValue("MessageBody", MessageBody);
     }
 
     #endregion

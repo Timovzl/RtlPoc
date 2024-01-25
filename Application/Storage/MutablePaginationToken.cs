@@ -15,12 +15,12 @@ public record class MutablePaginationToken
 
     public MutablePaginationToken(ushort pageSize)
     {
-        this.PageSize = pageSize;
+        PageSize = pageSize;
     }
 
     public MutablePaginationToken(ushort pageSize, string? continuationToken)
         : this(pageSize: pageSize)
     {
-        this.ContinuationToken = continuationToken;
+        ContinuationToken = continuationToken;
     }
 }

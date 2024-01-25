@@ -14,7 +14,7 @@ public interface IRepository
         where T : IPocEntity
     {
         var idString = id.ToString()!;
-        return this.GetAsync<T>(idString, (DataPartitionKey)idString, cancellationToken, options);
+        return GetAsync<T>(idString, (DataPartitionKey)idString, cancellationToken, options);
     }
 
     /// <summary>

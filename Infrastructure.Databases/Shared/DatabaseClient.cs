@@ -16,7 +16,7 @@ public sealed class DatabaseClient : IHostedService, IDisposable
 
     public DatabaseClient(IConfiguration configuration)
     {
-        this._configuration = configuration;
+        _configuration = configuration;
 
         var boundedContextName = BoundedContext.Name.Split('.').Last();
         var assemblyNameSuffix = Assembly.GetEntryAssembly()!.GetName().Name!;
@@ -35,19 +35,19 @@ public sealed class DatabaseClient : IHostedService, IDisposable
             Serializer = new CosmosNewtonsoftSerializerHonoringDefaults(),
         };
 
-        this.CosmosClient = new CosmosClient(
-            connectionString: this._configuration.GetConnectionString("CoreDatabase"),
+        CosmosClient = new CosmosClient(
+            connectionString: _configuration.GetConnectionString("CoreDatabase"),
             cosmosClientOptions);
     }
 
     public void Dispose()
     {
-        this.CosmosClient.Dispose();
+        CosmosClient.Dispose();
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        var databaseName = this._configuration.GetConnectionString("CoreDatabaseName");
+        var databaseName = _configuration.GetConnectionString("CoreDatabaseName");
         var throughput = ThroughputProperties.CreateAutoscaleThroughput(1000);
 
         var containerProperties = new ContainerProperties(id: "Core", partitionKeyPath: "/part")
@@ -61,12 +61,12 @@ public sealed class DatabaseClient : IHostedService, IDisposable
             },
         };
 
-        this.Database = await this.CosmosClient.CreateDatabaseIfNotExistsAsync(
+        Database = await CosmosClient.CreateDatabaseIfNotExistsAsync(
             databaseName,
             throughput,
             cancellationToken: cancellationToken);
 
-        this.Container = await this.Database.CreateContainerIfNotExistsAsync(
+        Container = await Database.CreateContainerIfNotExistsAsync(
             containerProperties,
             throughput: null, // Share in database's throughput
             cancellationToken: cancellationToken);

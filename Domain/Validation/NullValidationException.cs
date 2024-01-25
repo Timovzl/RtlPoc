@@ -19,7 +19,7 @@ public class NullValidationException : ValidationException
     public NullValidationException(Enum errorCode, string parameterName, string message)
         : base(errorCode, message)
     {
-        this.ParameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
+        ParameterName = parameterName ?? throw new ArgumentNullException(nameof(parameterName));
     }
 
     private static string CreateErrorMessage(string? parameterName, string? callerFilePath, string? callerMemberName)
@@ -36,7 +36,7 @@ public class NullValidationException : ValidationException
     protected NullValidationException(SerializationInfo info, StreamingContext context)
         : base(info, context)
     {
-        this.ParameterName = info.GetString("ParameterName") ?? throw new IOException("Failed to deserialize: ParameterName is missing.");
+        ParameterName = info.GetString("ParameterName") ?? throw new IOException("Failed to deserialize: ParameterName is missing.");
     }
 
     [Obsolete("Exists because base class has serializable attribute, which strict tools then expect on subclasses as well", DiagnosticId = "SYSLIB0051")]
@@ -44,7 +44,7 @@ public class NullValidationException : ValidationException
     {
         base.GetObjectData(info, context);
 
-        info.AddValue("ParameterName", this.ParameterName);
+        info.AddValue("ParameterName", ParameterName);
     }
 
     #endregion

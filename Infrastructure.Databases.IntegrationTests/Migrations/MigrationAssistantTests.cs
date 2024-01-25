@@ -15,11 +15,11 @@ public class MigrationAssistantTests : IntegrationTestBase
         // Arrange
 
         // Avoid the squashed migrations that our tests usually employ, thus reverting to regular migrations
-        this.ConfigureServices(services => services.Remove(services.Last(descriptor => descriptor.ServiceType == typeof(MigrationListProvider))));
+        ConfigureServices(services => services.Remove(services.Last(descriptor => descriptor.ServiceType == typeof(MigrationListProvider))));
 
         // Prevent migrations during StartAsync(), so that we can test them separately
         var allowMigrations = false;
-        this.ConfigureServices(services => services.Decorate<MigrationListProvider>(provider =>
+        ConfigureServices(services => services.Decorate<MigrationListProvider>(provider =>
         {
             var suppressableMigrationListProvider = Substitute.For<MigrationListProvider>();
             suppressableMigrationListProvider.GetMigrations().Returns(_ => allowMigrations
@@ -29,11 +29,11 @@ public class MigrationAssistantTests : IntegrationTestBase
         }));
 
         var logger = Substitute.For<ILogger>();
-        this.ConfigureServices(services => services.AddSingleton<ILogger<MigrationAssistant>>(new LoggerWrapperForInternalType<MigrationAssistant>(logger)));
+        ConfigureServices(services => services.AddSingleton<ILogger<MigrationAssistant>>(new LoggerWrapperForInternalType<MigrationAssistant>(logger)));
 
-        var instance = this.Host.Services.GetRequiredService<MigrationAssistant>();
+        var instance = Host.Services.GetRequiredService<MigrationAssistant>();
 
-        var repository = this.Host.Services.GetRequiredService<IRepository>();
+        var repository = Host.Services.GetRequiredService<IRepository>();
         var migrations = await repository.ListAsync<MigrationAssistant.Migration>(query => query.Where(x => x.Count >= 0), CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
 
         migrations.Count.ShouldBe(0); // No migrations should have been applied yet
@@ -62,7 +62,7 @@ public class MigrationAssistantTests : IntegrationTestBase
             migration.Description.ShouldBe(expectedMigration.Key);
 
         // Verify changes applied by various migrations
-        var container = this.Host.Services.GetRequiredService<DatabaseClient>().Container;
+        var container = Host.Services.GetRequiredService<DatabaseClient>().Container;
         ContainerProperties containerProperties = await container.ReadContainerAsync();
         containerProperties.IndexingPolicy.IncludedPaths.ShouldHaveSingleItem().Path.ShouldBe("/*");
         containerProperties.IndexingPolicy.ExcludedPaths.ShouldContain(excludedPath => excludedPath.Path == "/Promise_Dta/?");

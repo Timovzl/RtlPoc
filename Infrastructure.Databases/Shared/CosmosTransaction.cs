@@ -17,12 +17,12 @@ internal sealed class CosmosTransaction(
     private readonly DataPartitionKey _partitionKey = partitionKey;
     private readonly PartitionKey _cosmosPartitionKey = new PartitionKey(partitionKey);
 
-    public override IRepository Repository => this._repository;
+    public override IRepository Repository => _repository;
     private readonly CosmosRepository _repository = repository;
 
     public override CancellationToken CancellationToken { get; } = cancellationToken;
 
-    public TransactionalBatch Batch => this._batch ??= this._repository.Container.CreateTransactionalBatch(this._cosmosPartitionKey);
+    public TransactionalBatch Batch => _batch ??= _repository.Container.CreateTransactionalBatch(_cosmosPartitionKey);
     private TransactionalBatch? _batch;
 
     /// <summary>
@@ -30,13 +30,13 @@ internal sealed class CosmosTransaction(
     /// </summary>
     private readonly List<IPocEntity?> _orderedEntities = [];
 
-    private List<Promise> Promises => this._promises ??= [];
+    private List<Promise> Promises => _promises ??= [];
     private List<Promise>? _promises;
 
     public override ValueTask DisposeAsync()
     {
         // Throw if any promises were stored but neither attempted nor suppressed, which indicates that the develop forgot to attempt to fulfill the promise immediately
-        if (this._promises is not null && this._promises.FirstOrDefault(promise => promise.IsFirstAttempt && promise.AvailableAttemptCount > 0) is Promise forgottenPromise)
+        if (_promises is not null && _promises.FirstOrDefault(promise => promise.IsFirstAttempt && promise.AvailableAttemptCount > 0) is Promise forgottenPromise)
             throw new InvalidOperationException($"Created {forgottenPromise} was not attempted to be fulfilled immediately. If this is deliberate, suppress it explicitly before disposing the {nameof(StorageTransaction)}.");
 
         // A Cosmos transaction is sent as a single request, so no mutations are ever ongoing
@@ -49,29 +49,29 @@ internal sealed class CosmosTransaction(
     public void SetEntityForNextOperation(IPocEntity? entity)
     {
         // Protect size limitation
-        if (this._orderedEntities.Count >= MaxOperationCount)
+        if (_orderedEntities.Count >= MaxOperationCount)
             throw new InvalidOperationException($"A CosmosDB transaction supports only up to {MaxOperationCount} operations. Design for smaller batches.");
 
         // Protect single partition limitation
-        if (entity is not null && !this._partitionKey.MatchesId(entity.GetId()))
+        if (entity is not null && !_partitionKey.MatchesId(entity.GetId()))
             throw new InvalidOperationException("A CosmosDB transaction supports only a single partition. To automatically generate IDs for the same partition, start the use case with: using var idGeneratorScope = IdGenerator.CreateIdGeneratorScopeForSinglePartition().");
 
-        this._orderedEntities.Add(entity);
+        _orderedEntities.Add(entity);
 
         if (entity is Promise promise)
-            this.Promises.Add(promise);
+            Promises.Add(promise);
     }
 
     public override async ValueTask CommitAsync(CancellationToken? cancellationToken = null)
     {
-        var ct = cancellationToken ?? this.CancellationToken;
+        var ct = cancellationToken ?? CancellationToken;
 
-        if (this._orderedEntities.Count == 0)
+        if (_orderedEntities.Count == 0)
             return;
 
         try
         {
-            using var response = await this.Batch.ExecuteAsync(/*new TransactionalBatchRequestOptions()
+            using var response = await Batch.ExecuteAsync(/*new TransactionalBatchRequestOptions()
 			{
 				SessionToken = "", // TODO Enhancement: Pass session token manually? https://github.com/Azure/azure-cosmos-dotnet-v3/discussions/4237
 			},*/ ct);
@@ -80,24 +80,24 @@ internal sealed class CosmosTransaction(
                 throw new CosmosException($"Failed to complete ComosDB {nameof(TransactionalBatch)} of size {response.Count} with status code {(int)response.StatusCode}={response.StatusCode}.",
                     response.StatusCode, subStatusCode: 0 /*0=SubstatusCodes.Unknown*/, activityId: response.ActivityId, requestCharge: response.RequestCharge);
 
-            System.Diagnostics.Debug.Assert(response.Count == this._orderedEntities.Count);
+            System.Diagnostics.Debug.Assert(response.Count == _orderedEntities.Count);
 
             // Update ETags based on the response, in case further writes are attempted
-            for (var i = 0; i < this._orderedEntities.Count; i++)
-                if (this._orderedEntities[i] is IPocEntity entity)
+            for (var i = 0; i < _orderedEntities.Count; i++)
+                if (_orderedEntities[i] is IPocEntity entity)
                     entity.ETag = response.GetOperationResultAtIndex<IPocEntity>(i).ETag;
         }
         finally
         {
-            this._batch = null;
-            this._orderedEntities.Clear();
+            _batch = null;
+            _orderedEntities.Clear();
         }
     }
 
     public override ValueTask RollBackAsync(CancellationToken? cancellationToken = null)
     {
-        this._batch = null;
-        this._orderedEntities.Clear();
+        _batch = null;
+        _orderedEntities.Clear();
 
         // A Cosmos transaction is sent as a single request, so no mutations are ever ongoing
         return ValueTask.CompletedTask;

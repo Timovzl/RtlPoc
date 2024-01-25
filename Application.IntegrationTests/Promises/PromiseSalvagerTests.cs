@@ -17,7 +17,7 @@ public sealed class PromiseSalvagerTests : IntegrationTestBase
         [IdempotentPromiseFulfiller("PromiseSalvagerTests_FulfillAsync")]
         public Task FulfillAsync(Promise _, CancellationToken cancellationToken)
         {
-            this.InvocationCount++;
+            InvocationCount++;
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -25,18 +25,18 @@ public sealed class PromiseSalvagerTests : IntegrationTestBase
         }
     }
 
-    private PromiseSalvager Instance => (PromiseSalvager)this.Host.Services.GetRequiredService<IPromiseSalvager>();
+    private PromiseSalvager Instance => (PromiseSalvager)Host.Services.GetRequiredService<IPromiseSalvager>();
 
     private ILogger<CosmosPromiseSalvager> Logger { get; }
 
-    private TestUseCase UseCase => this.Host.Services.GetRequiredService<TestUseCase>();
+    private TestUseCase UseCase => Host.Services.GetRequiredService<TestUseCase>();
 
     public PromiseSalvagerTests()
     {
-        this.Logger = Substitute.For<ILogger<CosmosPromiseSalvager>>();
+        Logger = Substitute.For<ILogger<CosmosPromiseSalvager>>();
 
-        this.ConfigureServices(services => services.AddSingleton<TestUseCase>());
-        this.ConfigureServices(services => services.AddSingleton(this.Logger));
+        ConfigureServices(services => services.AddSingleton<TestUseCase>());
+        ConfigureServices(services => services.AddSingleton(Logger));
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public sealed class PromiseSalvagerTests : IntegrationTestBase
         var promise = Promise.Create((TestUseCase useCase) => useCase.FulfillAsync, data: "Hello");
         promise.Delay(TimeSpan.Zero);
 
-        await using var transactionForAdding = await this.Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
+        await using var transactionForAdding = await Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
         await transactionForAdding
             .AddAsync(promise)
             .CommitAsync();
@@ -55,26 +55,26 @@ public sealed class PromiseSalvagerTests : IntegrationTestBase
         promise.SuppressImmediateFulfillment();
         await transactionForAdding.DisposeAsync();
 
-        promise = await this.Repository.LoadAsync<Promise>(query => query.Where(x => x.Id == promise.Id), CancellationToken.None, new ReadOptions() { FullyConsistent = true });
+        promise = await Repository.LoadAsync<Promise>(query => query.Where(x => x.Id == promise.Id), CancellationToken.None, new ReadOptions() { FullyConsistent = true });
 
         promise.ShouldNotBeNull();
 
         promise.ClaimForAttempt();
 
-        await using var transactionForUpdating = await this.Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
+        await using var transactionForUpdating = await Repository.CreateTransactionAsync(promise.PartitionKey, CancellationToken.None);
         await transactionForUpdating
             .UpdateAsync(promise)
             .CommitAsync();
 
         // Cause an exception
-        var databaseClient = this.Host.Services.GetRequiredService<DatabaseClient>();
+        var databaseClient = Host.Services.GetRequiredService<DatabaseClient>();
         var container = databaseClient.Container;
         databaseClient.GetType().GetProperty(nameof(DatabaseClient.Container))!.SetValue(databaseClient, null!);
 
         // Act
         try
         {
-            await this.Instance.TryFulfillDuePromisesAsync(CancellationToken.None);
+            await Instance.TryFulfillDuePromisesAsync(CancellationToken.None);
         }
         finally
         {
@@ -83,9 +83,9 @@ public sealed class PromiseSalvagerTests : IntegrationTestBase
 
         // Assert
 
-        this.Logger.Received(1).Log(LogLevel.Error, message => message.Contains("Background fulfillment of neglected promises encountered an error"));
+        Logger.Received(1).Log(LogLevel.Error, message => message.Contains("Background fulfillment of neglected promises encountered an error"));
 
-        this.UseCase.InvocationCount.ShouldBe(0);
+        UseCase.InvocationCount.ShouldBe(0);
     }
 
     [Fact]
@@ -95,11 +95,11 @@ public sealed class PromiseSalvagerTests : IntegrationTestBase
 
         // Act
 
-        await this.Instance.TryFulfillDuePromisesAsync(new CancellationToken(canceled: true));
+        await Instance.TryFulfillDuePromisesAsync(new CancellationToken(canceled: true));
 
-        this.Logger.Received(0).Log(LogLevel.Information);
-        this.Logger.Received(0).Log(LogLevel.Warning);
-        this.Logger.Received(0).Log(LogLevel.Error);
+        Logger.Received(0).Log(LogLevel.Information);
+        Logger.Received(0).Log(LogLevel.Warning);
+        Logger.Received(0).Log(LogLevel.Error);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public sealed class PromiseSalvagerTests : IntegrationTestBase
         foreach (var promise in promises)
             promise.Delay(TimeSpan.Zero);
 
-        await using var transactionForAdding = await this.Repository.CreateTransactionAsync(promises[0].PartitionKey, CancellationToken.None);
+        await using var transactionForAdding = await Repository.CreateTransactionAsync(promises[0].PartitionKey, CancellationToken.None);
         await transactionForAdding
             .AddRangeAsync(promises)
             .CommitAsync();
@@ -128,16 +128,16 @@ public sealed class PromiseSalvagerTests : IntegrationTestBase
 
         // Act
 
-        await this.Instance.TryFulfillDuePromisesAsync(CancellationToken.None);
+        await Instance.TryFulfillDuePromisesAsync(CancellationToken.None);
 
         // Assert
 
-        this.UseCase.InvocationCount.ShouldBe(11);
+        UseCase.InvocationCount.ShouldBe(11);
 
-        this.Logger.Received(0).Log(LogLevel.Warning);
-        this.Logger.Received(0).Log(LogLevel.Error);
+        Logger.Received(0).Log(LogLevel.Warning);
+        Logger.Received(0).Log(LogLevel.Error);
 
-        var remainingPromises = await this.Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)), CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
+        var remainingPromises = await Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)), CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
         remainingPromises.ShouldBeEmpty();
     }
 }

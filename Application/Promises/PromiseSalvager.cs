@@ -33,7 +33,7 @@ public abstract class PromiseSalvager(
                     Random.Shared.Next(minValue: averageDelaySeconds / -4, maxValue: averageDelaySeconds / 4); // +/- a quarter
 
                 var delayTask = Task.Delay(TimeSpan.FromSeconds(delayInSeconds), stoppingToken);
-                var workTask = this.TryFulfillDuePromisesAsync(stoppingToken);
+                var workTask = TryFulfillDuePromisesAsync(stoppingToken);
 
                 await Task.WhenAll(delayTask, workTask);
             }
@@ -56,8 +56,8 @@ public abstract class PromiseSalvager(
     {
         try
         {
-            await foreach (var promise in this.EnumerateDuePromisesAsync(cancellationToken))
-                if (await this.TryClaimAndDeferPromiseAsync(promise, cancellationToken))
+            await foreach (var promise in EnumerateDuePromisesAsync(cancellationToken))
+                if (await TryClaimAndDeferPromiseAsync(promise, cancellationToken))
                     await promiseFulfiller.TryFulfillAsync(promise, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -82,7 +82,7 @@ public abstract class PromiseSalvager(
         var expectsMoreData = true;
         while (expectsMoreData && !cancellationToken.IsCancellationRequested)
         {
-            var batch = await resilienceStrategy.ExecuteAsync(cancellationToken => this.GetNeglectedPromiseBatchAsync(BatchSize, cancellationToken), cancellationToken);
+            var batch = await resilienceStrategy.ExecuteAsync(cancellationToken => GetNeglectedPromiseBatchAsync(BatchSize, cancellationToken), cancellationToken);
 
             foreach (var promise in batch)
                 yield return promise;
@@ -99,7 +99,7 @@ public abstract class PromiseSalvager(
     {
         promise.ClaimForAttempt();
 
-        return resilienceStrategy.ExecuteAsync(cancellationToken => this.TryUpdatePromiseAsync(promise, cancellationToken), cancellationToken);
+        return resilienceStrategy.ExecuteAsync(cancellationToken => TryUpdatePromiseAsync(promise, cancellationToken), cancellationToken);
     }
 
     /// <summary>

@@ -70,8 +70,8 @@ public record class MultiReadOptions : ReadOptions
         if (readOptions is null)
             return;
 
-        this.PartitionKey = readOptions.PartitionKey;
-        this.FullyConsistent = readOptions.FullyConsistent;
+        PartitionKey = readOptions.PartitionKey;
+        FullyConsistent = readOptions.FullyConsistent;
     }
 }
 

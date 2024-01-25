@@ -89,26 +89,26 @@ file sealed class FixedPartitionIdGenerator : IDistributedId128Generator
 
     public FixedPartitionIdGenerator(DataPartitionKey? partitionKey)
     {
-        this._hasRandomPartitionKey = partitionKey is null;
-        this._partitionKey = partitionKey ?? DataPartitionKey.CreateRandom();
+        _hasRandomPartitionKey = partitionKey is null;
+        _partitionKey = partitionKey ?? DataPartitionKey.CreateRandom();
 
-        if (this._partitionKey.Value.Length != 3)
+        if (_partitionKey.Value.Length != 3)
             throw new InvalidOperationException($"Targeted partitioning can only be used with a {nameof(DataPartitionKey)} that was cast directly from a 22-char v7 UUID string.");
     }
 
     public Guid CreateGuid()
     {
-        return this.CreateId().ToGuid();
+        return CreateId().ToGuid();
     }
 
     public UInt128 CreateId()
     {
         // Generate a new ID
-        var id = this._parentGenerator.CreateId();
+        var id = _parentGenerator.CreateId();
 
         // If we are being controlled by a test, and no deliberate partition key was used, then stick to what the test dictates
         // This helps obtain predictable IDs in tests
-        if (this._parentGenerator.GetType().Name == "IncrementalIdGenerator" && this._hasRandomPartitionKey)
+        if (_parentGenerator.GetType().Name == "IncrementalIdGenerator" && _hasRandomPartitionKey)
             return id;
 
         // Convert it to alphanumeric chars
@@ -121,9 +121,9 @@ file sealed class FixedPartitionIdGenerator : IDistributedId128Generator
         // Additionally, this makes it possible to put things in the same partition by deliberately assigning those characters
         // Overwriting the last ~18 bits does not significantly hinder the UUID scheme's properties:
         // Usually an ID contained 75 random bits, and occasionally one had received a 58-bit random increment since its predecessor (of which 40 bits will remain)
-        var partitionKeySpan = this._partitionKey.Value.AsSpan();
+        var partitionKeySpan = _partitionKey.Value.AsSpan();
         if (Ascii.FromUtf16(partitionKeySpan, chars[^3..], out var bytesWritten) != OperationStatus.Done || bytesWritten != 3)
-            throw new InvalidOperationException($"'{this._partitionKey}' is an unsuitable partition key for creating IDs in the same partition. Use one based on IDs created by the {nameof(IdGenerator)}.");
+            throw new InvalidOperationException($"'{_partitionKey}' is an unsuitable partition key for creating IDs in the same partition. Use one based on IDs created by the {nameof(IdGenerator)}.");
 
         // Decode the resulting ID
         AlphanumericIdEncoder.TryDecodeUInt128(chars, out var result);

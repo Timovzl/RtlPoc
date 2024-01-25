@@ -33,7 +33,7 @@ public sealed class CosmosMomentaryLockFactory(
     {
         return RetryOnConflictPipeline
             .ExecuteAsync(
-                cancellationToken => new ValueTask<IMomentaryLock>(task: this.AcquireLockAsync(uniqueKey, cancellationToken)),
+                cancellationToken => new ValueTask<IMomentaryLock>(task: AcquireLockAsync(uniqueKey, cancellationToken)),
                 cancellationToken)
             .AsTask();
     }
@@ -50,10 +50,10 @@ public sealed class CosmosMomentaryLockFactory(
 
         foreach (var uniqueKey in uniqueKeyList)
         {
-            var momentaryLock = (CosmosMomentaryLock)await this.WaitAsync(uniqueKey, cancellationToken);
+            var momentaryLock = (CosmosMomentaryLock)await WaitAsync(uniqueKey, cancellationToken);
             locks.Add(momentaryLock);
 
-            var lockHoldingTask = this.HoldLockAsync(uniqueKey, lockSynchronizer, cancellationToken);
+            var lockHoldingTask = HoldLockAsync(uniqueKey, lockSynchronizer, cancellationToken);
             lockHoldingTasks.Add(lockHoldingTask);
         }
 
@@ -102,7 +102,7 @@ public sealed class CosmosMomentaryLockFactory(
 
                 // Update our lock to hold it, so that we can retry from the top
                 // But if we cannot do so in time, then we have failed and must throw
-                var updateTask = this.RefreshLockTtlAsync(uniqueKey, cancellationToken);
+                var updateTask = RefreshLockTtlAsync(uniqueKey, cancellationToken);
                 await updateTask.WaitAsync(timeout: UniqueKey.DefaultTimeToLive / 2, cancellationToken);
             }
         } while (!lockSynchronizer.AllLocksAcquired.IsCompletedSuccessfully);
@@ -136,7 +136,7 @@ public sealed class CosmosMomentaryLockFactory(
             cancellationToken);
 
         var result = new CosmosMomentaryLock(
-            releaseAction: () => this.ReleaseLockAsync(uniqueKey, CancellationToken.None),
+            releaseAction: () => ReleaseLockAsync(uniqueKey, CancellationToken.None),
             timeToLive: TimeSpan.FromSeconds(uniqueKey.TimeToLiveInSeconds),
             disposedWhileExpiredAction: () => logger.LogWarning($"CosmosDB {nameof(IMomentaryLock)} expired before it was disposed, breaking concurrency safety"));
 
@@ -171,7 +171,7 @@ public sealed class CosmosMomentaryLockFactory(
 
             try
             {
-                if (this._lifetimeStopwatch.Elapsed > timeToLive)
+                if (_lifetimeStopwatch.Elapsed > timeToLive)
                     disposedWhileExpiredAction();
             }
             catch
@@ -191,7 +191,7 @@ public sealed class CosmosMomentaryLockFactory(
         int requiredLockCount)
     {
         private readonly TaskCompletionSource _allLocksAcquired = new TaskCompletionSource();
-        public Task AllLocksAcquired => this._allLocksAcquired.Task;
+        public Task AllLocksAcquired => _allLocksAcquired.Task;
 
         public void NotifyLockAcquired()
         {
@@ -199,7 +199,7 @@ public sealed class CosmosMomentaryLockFactory(
 
             // Once all locks are acquired simultaneously, all lock holders are expected to respond to the completed task, and we are done
             if (result == 0)
-                this._allLocksAcquired.TrySetResult();
+                _allLocksAcquired.TrySetResult();
         }
 
         public void NotifyLockLost()

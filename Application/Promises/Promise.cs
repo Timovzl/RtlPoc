@@ -9,28 +9,28 @@ namespace Rtl.News.RtlPoc.Application.Promises;
 /// </summary>
 public sealed class Promise : IPocEntity
 {
-    public override string ToString() => $"{{{nameof(Promise)} '{this.ActionName}' ({this.Id})}}";
+    public override string ToString() => $"{{{nameof(Promise)} '{ActionName}' ({Id})}}";
 
     public static TimeSpan ClaimDuration { get; } = TimeSpan.FromSeconds(60);
 
     [JsonProperty("id")]
     public string Id { get; private init; }
 
-    string IPocEntity.GetId() => this.Id;
+    string IPocEntity.GetId() => Id;
 
     [JsonProperty("part")]
-    public DataPartitionKey PartitionKey => (DataPartitionKey)this.Id;
+    public DataPartitionKey PartitionKey => (DataPartitionKey)Id;
 
     [JsonIgnore]
     public string? ETag
     {
-        get => this._eTag;
+        get => _eTag;
         set
         {
             // Whenever etag is overwritten, i.e. on inserting to storage or updating claim there, make an attempt available
-            this.AvailableAttemptCount = 1;
+            AvailableAttemptCount = 1;
 
-            this._eTag = value;
+            _eTag = value;
         }
     }
     [JsonProperty("_etag")]
@@ -80,31 +80,31 @@ public sealed class Promise : IPocEntity
     /// Indicates whether this is the first attempt to fulfill the promise, and only if it is made while the object has remained in-memory since its creation.
     /// </summary>
     [JsonIgnore]
-    public bool IsFirstAttempt => this.StorageTimestampInSeconds == default && // A newly created instance
-        this.AvailableAttemptCount == 1;
+    public bool IsFirstAttempt => StorageTimestampInSeconds == default && // A newly created instance
+        AvailableAttemptCount == 1;
 
     /// <summary>
     /// If the caller has claimed (and thus deferred) the current promise, then this indicates if there is currently enough time left to attempt to fulfill it.
     /// </summary>
     [JsonIgnore]
-    public bool HasTimeToFulfill => this.Due - Clock.UtcNow >= ClaimDuration / 2;
+    public bool HasTimeToFulfill => Due - Clock.UtcNow >= ClaimDuration / 2;
 
     private Promise(string id, string actionName, string data)
     {
-        this.Id = id;
-        this.AttemptCount = 1;
-        this.ActionName = actionName ?? throw new ArgumentNullException(nameof(actionName));
-        this.Data = data ?? throw new ArgumentNullException(nameof(data));
+        Id = id;
+        AttemptCount = 1;
+        ActionName = actionName ?? throw new ArgumentNullException(nameof(actionName));
+        Data = data ?? throw new ArgumentNullException(nameof(data));
 
-        this.Delay();
+        Delay();
     }
 
     [JsonConstructor]
     private Promise()
     {
-        this.Id = null!;
-        this.ActionName = null!;
-        this.Data = null!;
+        Id = null!;
+        ActionName = null!;
+        Data = null!;
     }
 
     /// <summary>
@@ -164,7 +164,7 @@ public sealed class Promise : IPocEntity
     /// </summary>
     public void Delay()
     {
-        this.Due = Clock.UtcNow.Add(ClaimDuration);
+        Due = Clock.UtcNow.Add(ClaimDuration);
     }
 
     /// <summary>
@@ -183,7 +183,7 @@ public sealed class Promise : IPocEntity
         if (timeSpan < TimeSpan.Zero)
             throw new ArgumentException($"The {nameof(timeSpan)} must be positive.");
 
-        this.Due = Clock.UtcNow.Add(timeSpan);
+        Due = Clock.UtcNow.Add(timeSpan);
     }
 
     /// <summary>
@@ -191,17 +191,17 @@ public sealed class Promise : IPocEntity
     /// </summary>
     public void SuppressImmediateFulfillment()
     {
-        if (this.StorageTimestampInSeconds != default) // An instance retrieved from storage
+        if (StorageTimestampInSeconds != default) // An instance retrieved from storage
             throw new InvalidOperationException("Immediate fulfillment of a promise need only be suppressed upon its initial creation.");
 
-        if (this.ETag is null)
+        if (ETag is null)
             throw new InvalidOperationException($"{this} was attempted to be suppressed before being committed to storage.");
 
-        if (this.AvailableAttemptCount <= 0)
+        if (AvailableAttemptCount <= 0)
             throw new InvalidOperationException("Immediate fulfillment of a promise can only be suppressed once, and only if it has not yet been attempted.");
 
         // Prevent further attempts on the current in-memory instance, and indicate that the promise has been deliberately addressed
-        this.AvailableAttemptCount = 0;
+        AvailableAttemptCount = 0;
     }
 
     /// <summary>
@@ -214,14 +214,14 @@ public sealed class Promise : IPocEntity
     /// </summary>
     public void ClaimForAttempt()
     {
-        if (this.StorageTimestampInSeconds == default) // A newly created instance
+        if (StorageTimestampInSeconds == default) // A newly created instance
             throw new InvalidOperationException("A newly created promise cannot be claimed, but instead is automatically claimed upon insertion into storage.");
 
-        if (this.Due > Clock.UtcNow)
-            throw new InvalidOperationException($"{this} was attempted to be claimed at {Clock.UtcNow:O} but is due only at {this.Due:O}.");
+        if (Due > Clock.UtcNow)
+            throw new InvalidOperationException($"{this} was attempted to be claimed at {Clock.UtcNow:O} but is due only at {Due:O}.");
 
-        this.AttemptCount++;
-        this.Delay();
+        AttemptCount++;
+        Delay();
     }
 
     /// <summary>
@@ -230,15 +230,15 @@ public sealed class Promise : IPocEntity
     public void ConsumeAttempt()
     {
         // Require a claim
-        if (this.ETag is null)
+        if (ETag is null)
             throw new InvalidOperationException($"{this} was attempted to be fulfilled before being committed to storage.");
-        if (this.AvailableAttemptCount <= 0)
+        if (AvailableAttemptCount <= 0)
             throw new InvalidOperationException($"{this} was attempted to be fulfilled without a claim. To avoid this, claim it and attempt to fulfill it exactly once.");
 
         // To globally avoid re-entrancy, require sufficient claim duration available
-        if (!this.HasTimeToFulfill && !this.IsFirstAttempt)
+        if (!HasTimeToFulfill && !IsFirstAttempt)
             throw new InvalidOperationException($"{this} was attempted to be fulfilled without an up-to-date claim.");
 
-        this.AvailableAttemptCount--;
+        AvailableAttemptCount--;
     }
 }

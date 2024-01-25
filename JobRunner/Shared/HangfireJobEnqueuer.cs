@@ -26,12 +26,12 @@ internal sealed class HangfireJobEnqueuer(
 
     public Task EnqueueJob(string jobNamePrefix)
     {
-        return this.EnqueueOrScheduleJobCore(jobNamePrefix, EnqueueMethod, [null, null,]);
+        return EnqueueOrScheduleJobCore(jobNamePrefix, EnqueueMethod, [null, null,]);
     }
 
     public Task ScheduleJob(string jobNamePrefix, DateTimeOffset instant)
     {
-        return this.EnqueueOrScheduleJobCore(jobNamePrefix, ScheduleMethod, [null, null, instant,]);
+        return EnqueueOrScheduleJobCore(jobNamePrefix, ScheduleMethod, [null, null, instant,]);
     }
 
     /// <param name="parameters">Must start with two null objects.</param>

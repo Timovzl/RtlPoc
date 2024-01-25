@@ -46,41 +46,41 @@ public abstract class IntegrationTestBase : IDisposable
     {
         get
         {
-            if (this._host is null)
+            if (_host is null)
             {
-                this._host ??= this.HostBuilder.Build();
-                this._host.Start();
+                _host ??= HostBuilder.Build();
+                _host.Start();
             }
-            return this._host;
+            return _host;
         }
     }
     private IHost? _host;
 
     protected IntegrationTestBase()
     {
-        this.HostBuilder = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
+        HostBuilder = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
             .UseDefaultServiceProvider(provider => provider.ValidateOnBuild = provider.ValidateScopes = true); // Be as strict as ASP.NET Core in Development is
 
-        this.Configuration = new ConfigurationBuilder()
+        Configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
             .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")}.json", optional: true)
             .AddEnvironmentVariables()
             .Build();
 
-        this.Configuration["ConnectionStrings:CoreDatabaseName"] = this.UniqueTestName;
+        Configuration["ConnectionStrings:CoreDatabaseName"] = UniqueTestName;
 
-        this.ConfigureServices(services => services.AddSingleton(this.Configuration));
+        ConfigureServices(services => services.AddSingleton(Configuration));
 
-        this.ConfigureServices(services => services.AddApplicationLayer(this.Configuration));
-        this.ConfigureServices(services => services.AddDatabaseInfrastructureLayer(this.Configuration));
+        ConfigureServices(services => services.AddApplicationLayer(Configuration));
+        ConfigureServices(services => services.AddDatabaseInfrastructureLayer(Configuration));
 
         // Add migrations, but squashed into a single migration for efficiency
-        this.ConfigureServices(services => services.AddDatabaseMigrations());
+        ConfigureServices(services => services.AddDatabaseMigrations());
         var defaultMigrationListProvider = new MigrationListProvider();
         var squashedMigrations = new[] { defaultMigrationListProvider.ApplyAllMigrations }.ToFrozenDictionary(_ => "Squashed migration");
         var squashedMigrationListProvider = Substitute.For<MigrationListProvider>();
         squashedMigrationListProvider.GetMigrations().Returns(squashedMigrations);
-        this.ConfigureServices(services => services.AddSingleton(squashedMigrationListProvider));
+        ConfigureServices(services => services.AddSingleton(squashedMigrationListProvider));
     }
 
     public virtual void Dispose()
@@ -89,14 +89,14 @@ public abstract class IntegrationTestBase : IDisposable
 
         try
         {
-            this._host?.StopAsync().GetAwaiter().GetResult();
+            _host?.StopAsync().GetAwaiter().GetResult();
         }
         finally
         {
-            if (this._host is not null)
-                this.DeleteDatabaseAsync().GetAwaiter().GetResult();
+            if (_host is not null)
+                DeleteDatabaseAsync().GetAwaiter().GetResult();
 
-            this._host?.Dispose();
+            _host?.Dispose();
         }
     }
 
@@ -105,9 +105,9 @@ public abstract class IntegrationTestBase : IDisposable
     /// </summary>
     protected void ConfigureServices(Action<IServiceCollection> action)
     {
-        if (this._host is not null) throw new Exception("No more services can be registered once the host is resolved.");
+        if (_host is not null) throw new Exception("No more services can be registered once the host is resolved.");
 
-        this.HostBuilder.ConfigureServices(action ?? throw new ArgumentNullException(nameof(action)));
+        HostBuilder.ConfigureServices(action ?? throw new ArgumentNullException(nameof(action)));
     }
 
     /// <summary>
@@ -115,7 +115,7 @@ public abstract class IntegrationTestBase : IDisposable
     /// </summary>
     private Task<DatabaseResponse> DeleteDatabaseAsync()
     {
-        var databaseClient = this.Host.Services.GetRequiredService<DatabaseClient>();
+        var databaseClient = Host.Services.GetRequiredService<DatabaseClient>();
         return databaseClient.Container.Database.DeleteAsync();
     }
 }

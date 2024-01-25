@@ -21,23 +21,23 @@ public sealed class IncrementalIdGenerator : IDistributedId128Generator
     /// <param name="partitionKey">The partition key that determines the last few characters, or null to use "par".</param>
     public IncrementalIdGenerator(DataPartitionKey? partitionKey = null)
     {
-        this._partitionKey = partitionKey ?? DataPartitionKey.CreateForArbitraryString("par");
+        _partitionKey = partitionKey ?? DataPartitionKey.CreateForArbitraryString("par");
 
-        if (this._partitionKey.Value.Length != 3)
+        if (_partitionKey.Value.Length != 3)
             throw new ArgumentException("The partition key should have a length of 3 characters.");
 
-        this._partitionKeyNumericValue = (ulong)AlphanumericIdEncoder.DecodeLongOrDefault($"00000000{this._partitionKey.Value}")!.Value;
+        _partitionKeyNumericValue = (ulong)AlphanumericIdEncoder.DecodeLongOrDefault($"00000000{_partitionKey.Value}")!.Value;
     }
 
     public Guid CreateGuid()
     {
-        return this.CreateId().ToGuid();
+        return CreateId().ToGuid();
     }
 
     public UInt128 CreateId()
     {
-        var id = (UInt128)Interlocked.Increment(ref this._previousIncrement) << 64;
-        id |= this._partitionKeyNumericValue;
+        var id = (UInt128)Interlocked.Increment(ref _previousIncrement) << 64;
+        id |= _partitionKeyNumericValue;
         return id;
     }
 }

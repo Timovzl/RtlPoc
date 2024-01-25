@@ -16,18 +16,18 @@ public sealed class ExampleUseCaseTests : IntegrationTestBase
 
         using var idGeneratorScope = new DistributedId128GeneratorScope(new IncrementalIdGenerator());
 
-        var promiseSalvager = this.Host.Services.GetRequiredService<CosmosPromiseSalvager>();
+        var promiseSalvager = Host.Services.GetRequiredService<CosmosPromiseSalvager>();
 
         // Act (immediate)
 
         using var clockScope = new ClockScope(FixedTime);
-        await this.GetApiResponse(HttpMethod.Post, "Example/AddEntities", new ExampleRequest());
+        await GetApiResponse(HttpMethod.Post, "Example/AddEntities", new ExampleRequest());
 
         // Assert (immediate)
 
-        var entities = await this.Repository.ListAsync<ExampleEntity>(query => query.Where(x => x.Name != null),
+        var entities = await Repository.ListAsync<ExampleEntity>(query => query.Where(x => x.Name != null),
             CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
-        var promises = await this.Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)),
+        var promises = await Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)),
             CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
 
         // One entity was deleted immediately, the other promised to be deleted
@@ -45,9 +45,9 @@ public sealed class ExampleUseCaseTests : IntegrationTestBase
 
         // Assert (eventual)
 
-        entities = await this.Repository.ListAsync<ExampleEntity>(query => query.Where(x => x.Name != null),
+        entities = await Repository.ListAsync<ExampleEntity>(query => query.Where(x => x.Name != null),
             CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
-        promises = await this.Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)),
+        promises = await Repository.ListAsync<Promise>(query => query.Where(x => x.Due >= default(DateTimeOffset)),
             CancellationToken.None, new MultiReadOptions() { FullyConsistent = true });
 
         // The remaining promise should have been fulfilled, i.e. deleted the remaining entity and itself

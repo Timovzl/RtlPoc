@@ -30,7 +30,7 @@ public sealed class UniqueKeyTests
         public string FourCharJsonProperty => "0000";
 
         [JsonProperty("SeriTest_Nested")]
-        public SerializableTestType Nested => this._nested ??= new SerializableTestType();
+        public SerializableTestType Nested => _nested ??= new SerializableTestType();
         private SerializableTestType? _nested;
     }
 

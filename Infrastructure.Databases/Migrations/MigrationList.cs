@@ -37,7 +37,7 @@ public class MigrationListProvider
     /// </summary>
     public void ApplyAllMigrations(ContainerProperties containerProperties)
     {
-        foreach (var (_, mutation) in this.GetMigrations())
+        foreach (var (_, mutation) in GetMigrations())
             mutation(containerProperties);
     }
 
@@ -48,12 +48,12 @@ public class MigrationListProvider
         private void AddDelta(string description, Action<ContainerProperties> mutation)
         {
             // Add the mutation
-            this._mutationAccumulator.Add(description, mutation);
+            _mutationAccumulator.Add(description, mutation);
         }
 
         public MigrationListBuilder CreateInitial(string description)
         {
-            this._mutationAccumulator.Add(description, _ => { });
+            _mutationAccumulator.Add(description, _ => { });
             return this;
         }
 
@@ -71,7 +71,7 @@ public class MigrationListProvider
                 })
                 .ToList();
 
-            this.AddDelta(
+            AddDelta(
                 description,
                 containerProperties => containerProperties.IndexingPolicy.CompositeIndexes.Add(new Collection<CompositePath>(index)));
 
@@ -84,7 +84,7 @@ public class MigrationListProvider
         {
             var excludedPath = new ExcludedPath() { Path = $"{JsonUtilities.GetPropertyPath(property)}/?" };
 
-            this.AddDelta(
+            AddDelta(
                 description,
                 containerProperties => containerProperties.IndexingPolicy.ExcludedPaths.Add(excludedPath));
 
@@ -93,7 +93,7 @@ public class MigrationListProvider
 
         public FrozenDictionary<string, Action<ContainerProperties>> Build()
         {
-            return this._mutationAccumulator.ToFrozenDictionary();
+            return _mutationAccumulator.ToFrozenDictionary();
         }
     }
 }

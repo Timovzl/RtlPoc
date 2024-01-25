@@ -1,4 +1,4 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -60,11 +60,11 @@ public readonly partial struct DataPartitionKey
 
     private DataPartitionKey(string? value)
     {
-        this.Value = value ?? "";
+        Value = value ?? "";
 
-        if (Utf8.FromUtf16(this.Value, stackalloc byte[MaxLengthInBytes], out _, out _) == OperationStatus.DestinationTooSmall)
+        if (Utf8.FromUtf16(Value, stackalloc byte[MaxLengthInBytes], out _, out _) == OperationStatus.DestinationTooSmall)
             throw new ValidationException(ErrorCode.PartitionKey_ValueTooLong, $"A {nameof(DataPartitionKey)} must be no longer than {MaxLengthInBytes} characters.");
-        if (ContainsNonPrintableOrMultilineCharacters(this.Value) || this.Value.AsSpan().ContainsAny(SearchValuesForUnsupportedChars))
+        if (ContainsNonPrintableOrMultilineCharacters(Value) || Value.AsSpan().ContainsAny(SearchValuesForUnsupportedChars))
             throw new ValidationException(ErrorCode.PartitionKey_ValueInvalid, $@"A {nameof(DataPartitionKey)} must not contain any of /\""#? and no unprintable or multiline characters.");
     }
 
@@ -111,8 +111,8 @@ public readonly partial struct DataPartitionKey
     /// </summary>
     public bool MatchesId(string id)
     {
-        return this.Value.Length == 3
-            ? id.EndsWith(this.Value)
-            : this.Value == id;
+        return Value.Length == 3
+            ? id.EndsWith(Value)
+            : Value == id;
     }
 }

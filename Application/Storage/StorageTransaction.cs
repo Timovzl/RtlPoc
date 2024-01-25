@@ -43,7 +43,7 @@ public abstract class StorageTransaction : IAsyncDisposable
     {
         GC.SuppressFinalize(this);
 
-        return this.RollBackAsync(CancellationToken.None);
+        return RollBackAsync(CancellationToken.None);
     }
 
     public static implicit operator ValueTask<StorageTransaction>(StorageTransaction transaction) => ValueTask.FromResult(transaction);

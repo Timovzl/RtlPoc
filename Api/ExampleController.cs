@@ -14,6 +14,6 @@ public sealed class ExampleController : ControllerBase
     public async Task<IActionResult> AddEntities(ResilientService<ExampleUseCase> useCase, [FromBody] ExampleRequest _, CancellationToken cancellationToken)
     {
         await useCase.ExecuteAsync(cancellationToken);
-        return this.Ok();
+        return Ok();
     }
 }

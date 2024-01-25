@@ -35,7 +35,7 @@ internal sealed class CosmosNewtonsoftSerializerHonoringDefaults : CosmosSeriali
     /// </remarks>
     internal CosmosNewtonsoftSerializerHonoringDefaults()
     {
-        this.SerializerSettings = JsonConvert.DefaultSettings?.Invoke() ?? new JsonSerializerSettings();
+        SerializerSettings = JsonConvert.DefaultSettings?.Invoke() ?? new JsonSerializerSettings();
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ internal sealed class CosmosNewtonsoftSerializerHonoringDefaults : CosmosSeriali
     {
         if (cosmosSerializerOptions == null)
         {
-            this.SerializerSettings = JsonConvert.DefaultSettings();
+            SerializerSettings = JsonConvert.DefaultSettings();
             return;
         }
 
@@ -62,7 +62,7 @@ internal sealed class CosmosNewtonsoftSerializerHonoringDefaults : CosmosSeriali
                 : null;
         jsonSerializerSettings.MaxDepth = 64; // https://github.com/advisories/GHSA-5crp-9r3c-p9vr
 
-        this.SerializerSettings = jsonSerializerSettings;
+        SerializerSettings = jsonSerializerSettings;
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ internal sealed class CosmosNewtonsoftSerializerHonoringDefaults : CosmosSeriali
     /// </remarks>
     internal CosmosNewtonsoftSerializerHonoringDefaults(JsonSerializerSettings jsonSerializerSettings)
     {
-        this.SerializerSettings = jsonSerializerSettings ?? throw new ArgumentNullException(nameof(jsonSerializerSettings));
+        SerializerSettings = jsonSerializerSettings ?? throw new ArgumentNullException(nameof(jsonSerializerSettings));
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ internal sealed class CosmosNewtonsoftSerializerHonoringDefaults : CosmosSeriali
             {
                 using (JsonTextReader jsonTextReader = new JsonTextReader(sr))
                 {
-                    JsonSerializer jsonSerializer = this.GetSerializer();
+                    JsonSerializer jsonSerializer = GetSerializer();
                     return jsonSerializer.Deserialize<T>(jsonTextReader);
                 }
             }
@@ -117,7 +117,7 @@ internal sealed class CosmosNewtonsoftSerializerHonoringDefaults : CosmosSeriali
             using (JsonWriter writer = new JsonTextWriter(streamWriter))
             {
                 writer.Formatting = Formatting.None;
-                JsonSerializer jsonSerializer = this.GetSerializer();
+                JsonSerializer jsonSerializer = GetSerializer();
                 jsonSerializer.Serialize(writer, input);
                 writer.Flush();
                 streamWriter.Flush();
@@ -134,6 +134,6 @@ internal sealed class CosmosNewtonsoftSerializerHonoringDefaults : CosmosSeriali
     /// </summary>
     private JsonSerializer GetSerializer()
     {
-        return JsonSerializer.Create(this.SerializerSettings);
+        return JsonSerializer.Create(SerializerSettings);
     }
 }

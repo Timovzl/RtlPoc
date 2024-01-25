@@ -34,7 +34,7 @@ public static class DomainRegistrationExtensions
             in IEntityConfigurator.Args args)
             where TEntity : IEntity
         {
-            this.JsonConverters.Add(new ConstructorlessJsonConverter<TEntity>());
+            JsonConverters.Add(new ConstructorlessJsonConverter<TEntity>());
         }
     }
 

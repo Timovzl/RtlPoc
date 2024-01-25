@@ -27,7 +27,7 @@ internal sealed class MigrationAssistant(
 {
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        return this.MigrateAsync(cancellationToken);
+        return MigrateAsync(cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
@@ -48,7 +48,7 @@ internal sealed class MigrationAssistant(
         while (!cancellationToken.IsCancellationRequested)
         {
             // If no migrations, done
-            var migrationCount = await this.GetMigrationCountAsync(cancellationToken);
+            var migrationCount = await GetMigrationCountAsync(cancellationToken);
             if (migrationCount == targetMigrationCount)
                 break;
 
@@ -58,12 +58,12 @@ internal sealed class MigrationAssistant(
             await using var migrationLock = await momentaryLockFactory.WaitAsync(migrationKey, cancellationToken);
 
             // Double check within lock
-            migrationCount = await this.GetMigrationCountAsync(cancellationToken);
+            migrationCount = await GetMigrationCountAsync(cancellationToken);
             if (migrationCount == targetMigrationCount)
                 break;
 
             // Migrate
-            await this.StartMigrationAsync(migrations, currentMigrationCount: migrationCount, cancellationToken);
+            await StartMigrationAsync(migrations, currentMigrationCount: migrationCount, cancellationToken);
         }
 
         logger.LogInformation("Migrated");
@@ -119,14 +119,14 @@ internal sealed class MigrationAssistant(
 
     internal sealed class Migration : IPocEntity
     {
-        public override string ToString() => $"{{{nameof(Migration)} #{this.Count}: {this.Description}}}";
+        public override string ToString() => $"{{{nameof(Migration)} #{Count}: {Description}}}";
 
         public static DataPartitionKey DefaultPartitionKey { get; } = DataPartitionKey.CreateForArbitraryString("Migrations");
 
         [JsonProperty("id")]
-        public string Id => $"Migration{this.Count:00000}";
+        public string Id => $"Migration{Count:00000}";
 
-        public string GetId() => this.Id;
+        public string GetId() => Id;
 
         [JsonProperty("part")]
         public DataPartitionKey PartitionKey => DefaultPartitionKey;
@@ -145,8 +145,8 @@ internal sealed class MigrationAssistant(
 
         public Migration(ushort count, string? description)
         {
-            this.Count = count;
-            this.Description = description;
+            Count = count;
+            Description = description;
         }
     }
 }

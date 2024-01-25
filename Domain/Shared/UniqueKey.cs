@@ -25,7 +25,7 @@ public sealed partial class UniqueKey : IComparable<UniqueKey>
     /// </para>
     /// </summary>
     [JsonProperty("id")]
-    public string Id => $"Uniq{this.Path}{PathSeparator}{this.Value}"; // E.g. Uniq|Migr_Ix|0
+    public string Id => $"Uniq{Path}{PathSeparator}{Value}"; // E.g. Uniq|Migr_Ix|0
 
     /// <summary>
     /// <para>
@@ -36,7 +36,7 @@ public sealed partial class UniqueKey : IComparable<UniqueKey>
     /// </para>
     /// </summary>
     [JsonProperty("part")]
-    public DataPartitionKey PartitionKey => DataPartitionKey.CreateForArbitraryString(this.Value);
+    public DataPartitionKey PartitionKey => DataPartitionKey.CreateForArbitraryString(Value);
 
     /// <summary>
     /// <para>
@@ -62,20 +62,20 @@ public sealed partial class UniqueKey : IComparable<UniqueKey>
 
     private UniqueKey(string path, string value)
     {
-        this.Path = path ?? throw new ArgumentNullException(nameof(path));
-        this.Value = value is null
+        Path = path ?? throw new ArgumentNullException(nameof(path));
+        Value = value is null
             ? throw new ArgumentNullException(nameof(value))
             : Base64UrlEncodeValue(value);
 
-        if (this.Path.AsSpan().ContainsAny(DataPartitionKey.SearchValuesForUnsupportedChars))
-            throw new ArgumentException($"The path contains unsupported characters: {this.Path}.");
+        if (Path.AsSpan().ContainsAny(DataPartitionKey.SearchValuesForUnsupportedChars))
+            throw new ArgumentException($"The path contains unsupported characters: {Path}.");
 
-        System.Diagnostics.Debug.Assert(!this.Path.AsSpan().ContainsAny(DataPartitionKey.SearchValuesForUnsupportedChars),
-            $"The value contains unsupported chars: {this.Value}.");
+        System.Diagnostics.Debug.Assert(!Path.AsSpan().ContainsAny(DataPartitionKey.SearchValuesForUnsupportedChars),
+            $"The value contains unsupported chars: {Value}.");
 
         // Our value should be usable as a partition key
-        if (!Ascii.IsValid(this.Value) || this.Value.Length > DataPartitionKey.MaxLengthInBytes)
-            throw new ArgumentException($"The {nameof(UniqueKey)} is too long with Path={this.Path} and Value={this.Value}. Consider using a WrapperValueObject to constrain the value to 75 or fewer UTF-8 bytes.");
+        if (!Ascii.IsValid(Value) || Value.Length > DataPartitionKey.MaxLengthInBytes)
+            throw new ArgumentException($"The {nameof(UniqueKey)} is too long with Path={Path} and Value={Value}. Consider using a WrapperValueObject to constrain the value to 75 or fewer UTF-8 bytes.");
     }
 
     /// <summary>

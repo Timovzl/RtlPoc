@@ -24,7 +24,7 @@ public sealed partial class CosmosRepository(
 
         try
         {
-            var response = await this.Container.ReadItemAsync<T>(id, new PartitionKey(partitionKey), new ItemRequestOptions()
+            var response = await Container.ReadItemAsync<T>(id, new PartitionKey(partitionKey), new ItemRequestOptions()
             {
                 ConsistencyLevel = options.FullyConsistent ? ConsistencyLevel.BoundedStaleness : null,
                 //SessionToken = "", // TODO Enhancement: Pass session token manually? https://github.com/Azure/azure-cosmos-dotnet-v3/discussions/4237
@@ -46,7 +46,7 @@ public sealed partial class CosmosRepository(
             PaginationToken = new MutablePaginationToken(pageSize: 1),
         };
 
-        await using var enumerator = this.EnumerateAsync(query, cancellationToken, multiReadOptions).GetAsyncEnumerator(cancellationToken);
+        await using var enumerator = EnumerateAsync(query, cancellationToken, multiReadOptions).GetAsyncEnumerator(cancellationToken);
         return await enumerator.MoveNextAsync();
     }
 
@@ -59,7 +59,7 @@ public sealed partial class CosmosRepository(
         };
 
         T? result = null;
-        await foreach (var item in this.EnumerateAsync(query, cancellationToken, multiReadOptions))
+        await foreach (var item in EnumerateAsync(query, cancellationToken, multiReadOptions))
             result = result is null ? item : throw new IOException($"Failed to load {typeof(T).Name} because multiple results were found");
         return result;
     }
@@ -68,7 +68,7 @@ public sealed partial class CosmosRepository(
         where T : IPocEntity
     {
         var result = new List<T>();
-        await foreach (var item in this.EnumerateAsync(query, cancellationToken, options))
+        await foreach (var item in EnumerateAsync(query, cancellationToken, options))
             result.Add(item);
         return result;
     }
@@ -78,7 +78,7 @@ public sealed partial class CosmosRepository(
     {
         options ??= MultiReadOptions.Default;
 
-        var queryable = this.Container.GetItemLinqQueryable<T>(
+        var queryable = Container.GetItemLinqQueryable<T>(
             allowSynchronousQueryExecution: false,
             continuationToken: options.PaginationToken?.ContinuationToken,
             requestOptions: new QueryRequestOptions()
@@ -134,7 +134,7 @@ public sealed partial class CosmosRepository(
             ContinuationToken = continuationToken,
             PageSize = (ushort)(paginationToken.PageSize - resultCount),
         };
-        await foreach (var result in this.EnumerateAsync(query, cancellationToken, options with { PaginationToken = paginationTokenCopy }))
+        await foreach (var result in EnumerateAsync(query, cancellationToken, options with { PaginationToken = paginationTokenCopy }))
             yield return result;
         paginationToken.ContinuationToken = paginationTokenCopy.ContinuationToken;
     }

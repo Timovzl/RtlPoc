@@ -20,7 +20,7 @@ namespace Rtl.News.RtlPoc.Contracts;
 /// <param name="value">If <paramref name="hasValue"/> is false, this parameter is ignored.</param>
 public readonly struct Optional<T>(T value, bool hasValue = true)
 {
-    public override string ToString() => this.HasValue ? this.ValueOrDefault?.ToString() : "[Omitted Optional]";
+    public override string ToString() => HasValue ? ValueOrDefault?.ToString() : "[Omitted Optional]";
 
     /// <summary>
     /// If true, this object contains a value (which might be null).
@@ -43,8 +43,8 @@ public readonly struct Optional<T>(T value, bool hasValue = true)
     /// </summary>
     public T GetValue()
     {
-        return this.HasValue
-            ? this.ValueOrDefault
+        return HasValue
+            ? ValueOrDefault
             : ThrowNoValue();
     }
 
@@ -58,7 +58,7 @@ public readonly struct Optional<T>(T value, bool hasValue = true)
     /// </summary>
     public T GetValueOrProvided(T provided)
     {
-        var result = this.HasValue ? this.ValueOrDefault : provided;
+        var result = HasValue ? ValueOrDefault : provided;
         return result;
     }
 

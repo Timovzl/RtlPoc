@@ -16,13 +16,13 @@ public sealed partial class ExternalId : IIdentity<string>, IComparable<External
 
     public ExternalId(string value)
     {
-        this.Value = value ?? throw new NullValidationException(ErrorCode.ExternalId_ValueNull, nameof(value));
+        Value = value ?? throw new NullValidationException(ErrorCode.ExternalId_ValueNull, nameof(value));
 
-        if (this.Value.Length == 0)
+        if (Value.Length == 0)
             throw new ValidationException(ErrorCode.ExternalId_ValueEmpty, "An external ID value must not be empty.");
-        if (this.Value.Length > MaxLength)
+        if (Value.Length > MaxLength)
             throw new ValidationException(ErrorCode.ExternalId_ValueTooLong, $"An external ID value must not be over {MaxLength} characters long.");
-        if (ContainsNonAsciiOrNonPrintableOrWhitespaceCharacters(this.Value) || this.Value.AsSpan().IndexOfAny('\'', '"') >= 0)
+        if (ContainsNonAsciiOrNonPrintableOrWhitespaceCharacters(Value) || Value.AsSpan().IndexOfAny('\'', '"') >= 0)
             throw new ValidationException(ErrorCode.ExternalId_ValueInvalid, "An external ID value must consist of printable, non-whitespace, non-quote ASCII characters.");
     }
 }

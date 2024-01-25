@@ -29,7 +29,7 @@ public sealed class CosmosResilienceStrategy : IResilienceStrategy
 
     public CosmosResilienceStrategy()
     {
-        this._resiliencePipeline = new ResiliencePipelineBuilder()
+        _resiliencePipeline = new ResiliencePipelineBuilder()
 
             // The SDK already handles retries for rate limiting
 
@@ -56,7 +56,7 @@ public sealed class CosmosResilienceStrategy : IResilienceStrategy
 
     public async Task ExecuteAsync(Func<CancellationToken, Task> operation, CancellationToken cancellationToken)
     {
-        await this._resiliencePipeline.ExecuteAsync(
+        await _resiliencePipeline.ExecuteAsync(
             static (operation, cancellationToken) => new ValueTask(task: operation(cancellationToken)),
             operation,
             cancellationToken);
@@ -64,7 +64,7 @@ public sealed class CosmosResilienceStrategy : IResilienceStrategy
 
     public async Task<TResult> ExecuteAsync<TResult>(Func<CancellationToken, Task<TResult>> operation, CancellationToken cancellationToken)
     {
-        return await this._resiliencePipeline.ExecuteAsync(
+        return await _resiliencePipeline.ExecuteAsync(
             static (operation, cancellationToken) => new ValueTask<TResult>(task: operation(cancellationToken)),
             operation,
             cancellationToken);
